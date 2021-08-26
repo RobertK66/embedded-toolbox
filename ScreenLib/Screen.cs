@@ -4,8 +4,9 @@ using System.Collections.Generic;
 
 namespace ScreenLib
 {
-    public class Screen
-    {
+    public class Screen {
+
+        public VerticalType VertType { get; set; } = VerticalType.OVERWRITE_LAST_LINE;
 
         public Size Size {get; set; }
      
@@ -18,8 +19,8 @@ namespace ScreenLib
         protected Screen Parent;
         protected List<Screen> Children = new List<Screen>();
 
-        public Screen(int cols, int rows, Screen parent, Nullable<ConsoleColor> background = null, Nullable<ConsoleColor> textcol = null) {
-            Parent = parent;
+        public Screen(int cols, int rows, Nullable<ConsoleColor> background = null, Nullable<ConsoleColor> textcol = null) {
+            //Parent = parent;
             Size = new Size(cols, rows);
             BackgroundColor = background ?? ConsoleColor.Black;
             TextColor = textcol ?? ConsoleColor.White;
@@ -27,7 +28,7 @@ namespace ScreenLib
             Offset = new Position(0,0);
         }
 
-        public void AddScreen(int xPos, int yPos, Screen child) {
+        public Screen AddScreen(int xPos, int yPos, Screen child) {
             if (xPos + child.Size.Width > this.Size.Width) {
                 // Passt nicht -> resize/cut ???
             } 
@@ -37,6 +38,8 @@ namespace ScreenLib
             // Overlapping childeren -> ????
             Children.Add(child);
             child.Offset = new Position(xPos, yPos);
+            child.Parent = this;
+            return child;
         }
 
         private (int left, int top, ConsoleColor back, ConsoleColor fore) GetConsoleState() {
@@ -52,13 +55,39 @@ namespace ScreenLib
 
 
         public void WriteLine(String message) {
-            var cs = GetConsoleState();
-            Console.SetCursorPosition(Offset.Left + CursorPos.Left, Offset.Top + CursorPos.Top);
-            Console.BackgroundColor = this.BackgroundColor;
-            Console.ForegroundColor = this.TextColor;
-            Console.Write(message);
-            this.CursorPos.Top++;
-            RestoreConsoleState(cs);
+            if(CursorPos.Top >= 0) {
+                var cs = GetConsoleState();
+                if ((CursorPos.Top == 0) && (VertType == VerticalType.RESTART)) {
+                    Clear();
+                }
+                Console.SetCursorPosition(Offset.Left + CursorPos.Left, Offset.Top + CursorPos.Top);
+                Console.BackgroundColor = this.BackgroundColor;
+                Console.ForegroundColor = this.TextColor;
+                Console.Write(message);
+                CursorPos.Top++;
+                if(CursorPos.Top > Size.Height - 1) {
+                    // we are in last line now. What to do:
+                    switch(VertType) {
+                    case VerticalType.SCROLL:
+                        // Not possible withourt buiffer -> Todo
+                        // make Last line repeat for now ....
+                    case VerticalType.OVERWRITE_LAST_LINE:
+                        CursorPos.Top--;
+                        break;  
+
+                    case VerticalType.CUT:
+                        // Stop writing until somebody resets Cursor Pos
+                        CursorPos.Top = -1;
+                        break;
+
+                    case VerticalType.WRAP_AROUND:
+                    case VerticalType.RESTART:
+                        CursorPos.Top = 0;
+                        break;
+                    }
+                }
+                RestoreConsoleState(cs);
+            }
         }
 
         public void WritePosition(int x, int y, String message) {
@@ -71,15 +100,17 @@ namespace ScreenLib
         }
 
         public virtual void Clear(bool deep=false) {
+            var cs = GetConsoleState();
             String line = "";
             line = line.PadLeft(this.Size.Width);
-            var cp = Console.GetCursorPosition();
             Console.BackgroundColor = this.BackgroundColor;
             for (int l = Offset.Top; l< Offset.Top + Size.Height; l++) {
                 Console.SetCursorPosition(Offset.Left, l);    
                 Console.Write(line);
             }
-            Console.SetCursorPosition(cp.Left, cp.Top);
+            CursorPos.Top = 0;
+            RestoreConsoleState(cs);
+
             if (deep) {
                 foreach(Screen child in Children) {
                     child.Clear(deep);

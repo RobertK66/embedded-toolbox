@@ -14,7 +14,7 @@ namespace ScreenLib
         private Position InputPos;
         public MainScreen (int x, int y) : base(x, y, null) {
             this.Parent = this;
-            Console.Title = "Screen X - Y ";
+            Console.Title = String.Format("Screen {0} - {1} ", Size.Width, Size.Height);
             WritePosition(Size.Width -1, Size.Height - 1, "+");
             InputPos = new Position(0,Size.Height - 2);
             Console.CursorLeft = InputPos.Left;
