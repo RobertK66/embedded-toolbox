@@ -7,7 +7,7 @@ namespace StatusConsole
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Console.WriteLine("Hellö Würld!");
 
             ScreenArea sca = new ScreenArea();
             sca.SayHello();
