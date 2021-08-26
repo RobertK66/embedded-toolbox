@@ -7,6 +7,8 @@ namespace ScreenLib
     public class Screen {
 
         public VerticalType VertType { get; set; } = VerticalType.OVERWRITE_LAST_LINE;
+        public HorizontalType HoriType { get; set; } = HorizontalType.CUT;
+        public Boolean FillUpLine { get; set; } = true;
 
         public Size Size {get; set; }
      
@@ -53,12 +55,27 @@ namespace ScreenLib
             Console.ForegroundColor = cs.fore;
         }
 
-
         public void WriteLine(String message) {
             if(CursorPos.Top >= 0) {
+                String tail = String.Empty;
                 var cs = GetConsoleState();
                 if ((CursorPos.Top == 0) && (VertType == VerticalType.RESTART)) {
                     Clear();
+                }
+                if(message.Length > (Size.Width - CursorPos.Left)) {
+                    String toPrint = message.Substring(0, (Size.Width - CursorPos.Left));
+                    switch(HoriType) {
+                    case HorizontalType.CUT:
+                        message = toPrint;
+                        break;
+                    case HorizontalType.WRAP:
+                    case HorizontalType.WRAP_OVER:
+                        tail = message.Substring((Size.Width - CursorPos.Left));
+                        message = toPrint;
+                        break;
+                    }
+                } else {
+                    message = message.PadRight(Size.Width);
                 }
                 Console.SetCursorPosition(Offset.Left + CursorPos.Left, Offset.Top + CursorPos.Top);
                 Console.BackgroundColor = this.BackgroundColor;
@@ -87,16 +104,33 @@ namespace ScreenLib
                     }
                 }
                 RestoreConsoleState(cs);
+                if (!String.IsNullOrEmpty(tail)) {
+                    if (HoriType == HorizontalType.WRAP_OVER) {
+                        CursorPos.Top--;
+                    }
+                    WriteLine(tail);
+                }
             }
         }
 
-        public void WritePosition(int x, int y, String message) {
-            var cs = GetConsoleState();
-            Console.SetCursorPosition(Offset.Left + x, Offset.Top + y);
-            Console.BackgroundColor = this.BackgroundColor;
-            Console.ForegroundColor = this.TextColor;
-            Console.Write(message);
-            RestoreConsoleState(cs);
+        public void WritePosition(int x, int y, String message, int fieldLen = -1) {
+            if((x < Size.Width - 1) && (y < Size.Height - 1)) {
+                int allowedLen = (Size.Width - x);
+                if(fieldLen > 0) {
+                    allowedLen = Math.Min(allowedLen, fieldLen);
+                    message = message.PadRight(fieldLen);
+                }
+
+                if(message.Length > allowedLen) {
+                    message = message.Substring(0, allowedLen);
+                }
+                var cs = GetConsoleState();
+                Console.SetCursorPosition(Offset.Left + x, Offset.Top + y);
+                Console.BackgroundColor = this.BackgroundColor;
+                Console.ForegroundColor = this.TextColor;
+                Console.Write(message);
+                RestoreConsoleState(cs);
+            }
         }
 
         public virtual void Clear(bool deep=false) {

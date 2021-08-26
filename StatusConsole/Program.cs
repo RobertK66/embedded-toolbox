@@ -21,7 +21,8 @@ namespace StatusConsole
             sca = main.AddScreen(0,0, new Screen(50, 10));
             scb = main.AddScreen(50,0, new Screen(50, 10, ConsoleColor.Yellow, ConsoleColor.Black));
             scc = main.AddScreen(0,14, new Screen(100, 14, ConsoleColor.DarkBlue, ConsoleColor.White));
-            //scb.VertType = VerticalType.RESTART;
+            scb.VertType = VerticalType.WRAP_AROUND;
+            scb.HoriType = HorizontalType.WRAP;
             main.Clear(true);
 
             sca.WriteLine("Hallo Screen A");
@@ -39,6 +40,7 @@ namespace StatusConsole
 
         public void LineHandler(object sender, LineEnteredArgs e) {
             scb.WriteLine(e.Cmd);
+            scb.WritePosition(40, 3, e.Cmd.ToUpper(), 7);
         }
 
     }
