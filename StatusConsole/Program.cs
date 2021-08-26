@@ -11,7 +11,8 @@ namespace StatusConsole
 
             ScreenArea sca = new ScreenArea();
             sca.SayHello();
-            Console.ReadLine();
+            string v = Console.ReadLine();
         }
     }
+
 }
