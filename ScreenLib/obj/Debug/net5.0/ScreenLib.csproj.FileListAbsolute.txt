@@ -1,0 +1,12 @@
+C:\dev\NET5\EmbeddedTools\ScreenLib\bin\Debug\net5.0\ScreenLib.deps.json
+C:\dev\NET5\EmbeddedTools\ScreenLib\bin\Debug\net5.0\ScreenLib.dll
+C:\dev\NET5\EmbeddedTools\ScreenLib\bin\Debug\net5.0\ref\ScreenLib.dll
+C:\dev\NET5\EmbeddedTools\ScreenLib\bin\Debug\net5.0\ScreenLib.pdb
+C:\dev\NET5\EmbeddedTools\ScreenLib\obj\Debug\net5.0\ScreenLib.csproj.AssemblyReference.cache
+C:\dev\NET5\EmbeddedTools\ScreenLib\obj\Debug\net5.0\ScreenLib.GeneratedMSBuildEditorConfig.editorconfig
+C:\dev\NET5\EmbeddedTools\ScreenLib\obj\Debug\net5.0\ScreenLib.AssemblyInfoInputs.cache
+C:\dev\NET5\EmbeddedTools\ScreenLib\obj\Debug\net5.0\ScreenLib.AssemblyInfo.cs
+C:\dev\NET5\EmbeddedTools\ScreenLib\obj\Debug\net5.0\ScreenLib.csproj.CoreCompileInputs.cache
+C:\dev\NET5\EmbeddedTools\ScreenLib\obj\Debug\net5.0\ScreenLib.dll
+C:\dev\NET5\EmbeddedTools\ScreenLib\obj\Debug\net5.0\ref\ScreenLib.dll
+C:\dev\NET5\EmbeddedTools\ScreenLib\obj\Debug\net5.0\ScreenLib.pdb
