@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,9 @@ namespace StatusConsole {
         public async static Task<int> Main(string[] args) { 
             var host = CreateHostBuilder(args);
             await host.RunConsoleAsync();
-            return Environment.ExitCode;
+            // This lines are not reached if Environment.Exit() is used somewhere in Services.....
+            Console.WriteLine("Exit Code in Main[]:" + Environment.ExitCode);
+            return Environment.ExitCode;      
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args) {
@@ -35,12 +38,11 @@ namespace StatusConsole {
                         })
                        .ConfigureServices(services => {
                            services.AddHostedService<HostedCmdlineApp>();
-                           services.AddTransient<IUartService, UartCli>();
+                           services.AddTransient<IUartServices, ObcEm2Uarts>();
+                           
                        });
         }
 
-
-      
 
         //private Screen sca;
         //private Screen scb;
@@ -72,7 +74,6 @@ namespace StatusConsole {
         //    scb.WriteLine(e.Cmd);
         //    scb.WritePosition(40, 3, e.Cmd.ToUpper(), 7);
         //}
-
       
     }
 

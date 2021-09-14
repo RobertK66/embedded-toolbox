@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
@@ -9,16 +10,20 @@ using System.Threading.Tasks;
 
 namespace StatusConsole {
     public class UartCli : IUartService {
+        private IConfigurationSection _config;
         private SerialPort  _serialPort;
         private bool _continue;
-        Thread reader = null;
+        //Thread reader = null;
+        Task reader;
 
-     Task IHostedService.StartAsync(CancellationToken cancellationToken) {
+        string IUartService.GetInterfaceName() {
+            return _config.Key;
+        }
 
-            // Create a new SerialPort object with default settings.
+        Task IHostedService.StartAsync(CancellationToken cancellationToken) {
             _serialPort = new SerialPort();
-            _serialPort.PortName = "COM30";
-            _serialPort.BaudRate = 9600;
+            _serialPort.PortName = _config?.GetValue<String>("ComName")??"COM1";
+            _serialPort.BaudRate = _config?.GetValue<int?>("Baud")??9600;
             _serialPort.Parity = Parity.None;
             _serialPort.DataBits = 8;
             _serialPort.StopBits = StopBits.One;
@@ -26,12 +31,12 @@ namespace StatusConsole {
             _serialPort.Open();
             _serialPort.NewLine = "\r";
             //_serialPort.ReadTimeout = 10;
-            Console.WriteLine("Uart connected");
+            Console.WriteLine("Uart "+ _serialPort.PortName + " connected");
 
             _continue = true;
-            //readerTask = Task.Run(() => Read());
-            reader = new Thread(Read);
-            reader.Start();
+            reader = Task.Run(() => Read());
+            //reader = new Thread(Read);
+            //reader.Start();
 
             return Task.CompletedTask;
         }
@@ -39,7 +44,7 @@ namespace StatusConsole {
         public void Read() {
             // Avoid blocking the thread;
             if (_serialPort.ReadTimeout == -1) {
-                _serialPort.ReadTimeout = 10;
+                _serialPort.ReadTimeout = 500;
             }
             while(_continue) {
                 try {
@@ -49,16 +54,23 @@ namespace StatusConsole {
             }
         }
 
-        Task IHostedService.StopAsync(CancellationToken cancellationToken) {
+        async Task IHostedService.StopAsync(CancellationToken cancellationToken) {
+            // terminate the reader Task.
             _continue = false;
-            //readerTask.Wait();
-            reader.Join();
+            await reader;       // reader Task will be finished and execution "awaits it" and continues afterwards. (Without blocking any thread here)
+            //reader.Join();    // How to do this in an async manner if Thread is used iso Task !?
             _serialPort.Close();
-            return Task.CompletedTask;
+            Console.WriteLine("Uart " + _serialPort.PortName + " closed.");
         }
 
         void IUartService.SendUart(string line) {
             _serialPort?.WriteLine(line);
         }
+
+        public void SetConfiguration(IConfigurationSection cs) {
+            _config = cs;
+
+        }
+
     }
 }

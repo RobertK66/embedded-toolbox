@@ -1,8 +1,7 @@
 {
   "profiles": {
     "StatusConsole": {
-      "commandName": "Project",
-      "commandLineArgs": "--UARTS:DEBUG:ComName COM30"
+      "commandName": "Project"
     }
   }
 }
