@@ -24,16 +24,22 @@ namespace StatusConsole {
             Console.WriteLine("Hi starting App");
             guiInputHandler = Task.Run(() => HandleConsoleInput());
 
-            await uarts["DEBUG"].StartAsync(cancellationToken);
-            await uarts["COM"].StartAsync(cancellationToken);
+            foreach(var uart in uarts) {
+                await uart.Value.StartAsync(cancellationToken);
+            }
+            //await uarts["DEBUG"].StartAsync(cancellationToken);
+            //await uarts["COM"].StartAsync(cancellationToken);
 
             uartInFocus = _myServices.GetCurrentService();
         }
 
         public async Task StopAsync(CancellationToken cancellationToken) {
             Console.WriteLine("Hi stopping App");
-            await uarts["DEBUG"].StopAsync(cancellationToken);
-            await uarts["COM"].StopAsync(cancellationToken);
+            foreach(var uart in uarts) {
+                await uart.Value.StopAsync(cancellationToken);
+            }
+            //await uarts["DEBUG"].StopAsync(cancellationToken);
+            //await uarts["COM"].StopAsync(cancellationToken);
         }
 
         public void HandleConsoleInput() {

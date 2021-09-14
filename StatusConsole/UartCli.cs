@@ -69,7 +69,6 @@ namespace StatusConsole {
 
         public void SetConfiguration(IConfigurationSection cs) {
             _config = cs;
-
         }
 
     }

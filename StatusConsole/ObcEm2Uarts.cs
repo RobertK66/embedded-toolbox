@@ -15,19 +15,14 @@ namespace StatusConsole {
         public ObcEm2Uarts(IConfiguration conf) {
             var uartConfigs = conf?.GetSection("UARTS").GetChildren();
             foreach(var uc in uartConfigs) {
-                switch(uc.Key) {
-                case "DEBUG":
-                    IUartService debugCli = new UartCli();
-                    debugCli.SetConfiguration(uc);
-                    services.Add(uc.Key, debugCli);
+                var type = Type.GetType(uc.GetValue<String>("Impl")??"dummy");
+                if(type != null) {
+                    IUartService uartService = (IUartService)Activator.CreateInstance(type);
+                    uartService.SetConfiguration(uc);
+                    services.Add(uc.Key, uartService);
                     keys.Add(uc.Key);
-                    break;
-                case "COM":
-                    IUartService com = new UartCli();
-                    com.SetConfiguration(uc);
-                    services.Add(uc.Key, com);
-                    keys.Add(uc.Key);
-                    break;
+                } else {
+                    throw new ApplicationException("UART " + uc.Key + " Impl class not found!" );
                 }
             }
             currentService = services[keys[0]];
