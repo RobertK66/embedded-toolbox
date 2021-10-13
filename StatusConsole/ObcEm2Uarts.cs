@@ -25,7 +25,9 @@ namespace StatusConsole {
                     throw new ApplicationException("UART " + uc.Key + " Impl class not found!" );
                 }
             }
-            currentService = services[keys[0]];
+            if(keys.Count > 0) {
+                currentService = services[keys[0]];
+            }
         }
 
         public Dictionary<string, IUartService> GetUartServices() {
@@ -45,7 +47,6 @@ namespace StatusConsole {
                 }
                 currentService = services[keys[curIdx]];
             }
-
             return currentService;
         }
         

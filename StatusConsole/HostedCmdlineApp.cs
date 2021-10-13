@@ -27,9 +27,7 @@ namespace StatusConsole {
             foreach(var uart in uarts) {
                 await uart.Value.StartAsync(cancellationToken);
             }
-            //await uarts["DEBUG"].StartAsync(cancellationToken);
-            //await uarts["COM"].StartAsync(cancellationToken);
-
+            
             uartInFocus = _myServices.GetCurrentService();
         }
 
@@ -38,13 +36,10 @@ namespace StatusConsole {
             foreach(var uart in uarts) {
                 await uart.Value.StopAsync(cancellationToken);
             }
-            //await uarts["DEBUG"].StopAsync(cancellationToken);
-            //await uarts["COM"].StopAsync(cancellationToken);
         }
 
         public void HandleConsoleInput() {
             
-
             String line = "";
             while( line != "quit") {
                 line = Console.ReadLine();
