@@ -18,7 +18,8 @@ namespace StatusConsole {
                 var type = Type.GetType(uc.GetValue<String>("Impl")??"dummy");
                 if(type != null) {
                     IUartService uartService = (IUartService)Activator.CreateInstance(type);
-                    uartService.SetConfiguration(uc);
+                    uartService.Initialize(uc);
+                    
                     services.Add(uc.Key, uartService);
                     keys.Add(uc.Key);
                 } else {

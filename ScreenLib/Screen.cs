@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace ScreenLib
 {
-    public class Screen {
+    public class Screen : IConOutput {
 
         public VerticalType VertType { get; set; } = VerticalType.OVERWRITE_LAST_LINE;
         public HorizontalType HoriType { get; set; } = HorizontalType.CUT;
@@ -55,7 +55,43 @@ namespace ScreenLib
             Console.ForegroundColor = cs.fore;
         }
 
-        public void WriteLine(String message) {
+        public void Write(String message, ConsoleColor? col = null) {
+            String tail = String.Empty;
+            if(message.Length > (Size.Width - CursorPos.Left)) {
+                String toPrint = message.Substring(0, (Size.Width - CursorPos.Left));
+                switch(HoriType) {
+                case HorizontalType.CUT:
+                    message = toPrint;
+                    break;
+                case HorizontalType.WRAP:
+                case HorizontalType.WRAP_OVER:
+                    tail = message.Substring((Size.Width - CursorPos.Left));
+                    message = toPrint;
+                    break;
+                }
+            } else {
+                //message = message.PadRight(Size.Width - CursorPos.Left);
+            }
+
+            var cs = GetConsoleState();
+            Console.BackgroundColor = this.BackgroundColor;
+            Console.ForegroundColor = col??this.TextColor;
+            Console.SetCursorPosition(Offset.Left + CursorPos.Left, Offset.Top + CursorPos.Top);
+            Console.Write(message);
+            CursorPos.Left += message.Length;
+            RestoreConsoleState(cs);
+
+            if(!String.IsNullOrEmpty(tail)) {
+                WriteLine("");
+                if(HoriType == HorizontalType.WRAP_OVER) {
+                    CursorPos.Top--;
+                }
+                Write(tail);
+            }
+        }
+
+
+        public void WriteLine(String message, ConsoleColor? col = null) {
             if(CursorPos.Top >= 0) {
                 String tail = String.Empty;
                 var cs = GetConsoleState();
@@ -75,22 +111,23 @@ namespace ScreenLib
                         break;
                     }
                 } else {
-                    message = message.PadRight(Size.Width);
+                    message = message.PadRight(Size.Width - CursorPos.Left);
                 }
                 Console.SetCursorPosition(Offset.Left + CursorPos.Left, Offset.Top + CursorPos.Top);
                 Console.BackgroundColor = this.BackgroundColor;
-                Console.ForegroundColor = this.TextColor;
+                Console.ForegroundColor = col ?? this.TextColor;
                 Console.Write(message);
+                CursorPos.Left = 0;
                 CursorPos.Top++;
                 if(CursorPos.Top > Size.Height - 1) {
                     // we are in last line now. What to do:
                     switch(VertType) {
                     case VerticalType.SCROLL:
-                        // Not possible withourt buiffer -> Todo
-                        // make Last line repeat for now ....
+                    // Not possible withourt buffer -> Todo
+                    // make Last line repeat for now ....
                     case VerticalType.OVERWRITE_LAST_LINE:
                         CursorPos.Top--;
-                        break;  
+                        break;
 
                     case VerticalType.CUT:
                         // Stop writing until somebody resets Cursor Pos
@@ -104,13 +141,14 @@ namespace ScreenLib
                     }
                 }
                 RestoreConsoleState(cs);
-                if (!String.IsNullOrEmpty(tail)) {
-                    if (HoriType == HorizontalType.WRAP_OVER) {
+                if(!String.IsNullOrEmpty(tail)) {
+                    if(HoriType == HorizontalType.WRAP_OVER) {
                         CursorPos.Top--;
                     }
                     WriteLine(tail);
                 }
             }
+            
         }
 
         public void WritePosition(int x, int y, String message, int fieldLen = -1) {

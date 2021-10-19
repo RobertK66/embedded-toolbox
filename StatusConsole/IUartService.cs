@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using ScreenLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +9,13 @@ using System.Threading.Tasks;
 
 namespace StatusConsole {
     public interface IUartService : IHostedService {
+        void Initialize(IConfigurationSection cs);
+        void SetScreen(IConOutput scr);
         void SendUart(string line);
-        void SetConfiguration(IConfigurationSection cs);
+
+        IConfigurationSection GetScreenConfig();
+
         string GetInterfaceName();
+        bool IsConnected();
     }
 }
