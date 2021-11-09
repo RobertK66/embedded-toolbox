@@ -40,7 +40,7 @@ namespace StatusConsole {
                 Port.StopBits = StopBits.One;
                 Port.Handshake = Handshake.None;
                 Port.Open();
-                Port.NewLine = "\r";
+                Port.NewLine = Config?.GetValue<String>("NewLine") ?? "\r";
                 //_serialPort.ReadTimeout = 10;
                 Screen.WriteLine("Uart " + Port.PortName + " connected");
                 Continue = true;
@@ -65,7 +65,11 @@ namespace StatusConsole {
             while(Continue) {
                 try {
                     char ch = (char)Port.ReadChar();
-                    Screen.Write(ch.ToString());
+                    if(ch.ToString().Equals(Port.NewLine)) {
+                        Screen.WriteLine("");
+                    } else {
+                        Screen.Write(ch.ToString());
+                    }
                 } catch(TimeoutException) { }
             }
         }

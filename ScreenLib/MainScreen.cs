@@ -11,11 +11,11 @@ namespace ScreenLib {
         public event EventHandler<LineEnteredArgs> LineEntered;
         protected T Model;
 
-        private Position InputPos;
+        protected Position InputPos;
         public MainScreen(int x, int y, T model) : base(x, y, null) {
             this.Parent = this;
             Console.Title = String.Format("Screen {0} - {1} ", Size.Width, Size.Height);
-            WritePosition(Size.Width - 1, Size.Height - 1, "+");
+            WritePosition(Size.Width - 2, Size.Height - 2, "+");
             InputPos = new Position(0, Size.Height - 2);
             Console.CursorLeft = InputPos.Left;
             Console.CursorTop = InputPos.Top;
@@ -24,7 +24,7 @@ namespace ScreenLib {
 
         public override void Clear(bool deep) {
             base.Clear(deep);
-            WritePosition(Size.Width - 1, Size.Height - 1, "+");
+            WritePosition(Size.Width - 2, Size.Height - 2, "*");
         }
 
         public void RunLine(String exitCmd) {

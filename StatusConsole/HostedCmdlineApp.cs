@@ -15,7 +15,7 @@ namespace StatusConsole {
         private Task guiInputHandler;
         public IUartService uartInFocus { get; set; }
 
-        private Screen inputScreen;
+        private Screen appLogScreen;
 
 
         // Constructor with IOC injection
@@ -44,41 +44,41 @@ namespace StatusConsole {
             }
 
             MainScreen<HostedCmdlineApp> main = new StatusConsoleMainView(mainX, mainY+14, this);
-            
             foreach(var uart in uarts) {
                 IConfigurationSection cs = uart.Value.GetScreenConfig();
                 int width = cs.GetValue("Width", 80);
                 int heigth = cs.GetValue("Height", 10);
                 int posX = cs.GetValue("Pos_X", 0);
                 int posY = cs.GetValue("Pos_Y", 0);
-
+                ConsoleColor txtCol = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue("Text", "White"));
+                ConsoleColor bkgCol = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue("Background", "Black"));
+                
+                
                 Screen scr = main.AddScreen(posX, posY, new Screen(width, heigth));
                 scr.HoriType = HorizontalType.WRAP;
                 scr.VertType = VerticalType.WRAP_AROUND;
+                scr.TextColor = txtCol;
+                scr.BackgroundColor = bkgCol;
                 uart.Value.SetScreen(scr);
-
+                scr.Clear();
                 await uart.Value.StartAsync(cancellationToken);
             }
 
-            inputScreen = main.AddScreen(0, mainY, new Screen(100, 14, ConsoleColor.DarkBlue, ConsoleColor.White));
-            inputScreen.Clear();
+            appLogScreen = main.AddScreen(0, mainY, new Screen(150, 12, ConsoleColor.DarkBlue, ConsoleColor.White));
+            appLogScreen.Clear();
             
 
 
-            inputScreen.WriteLine("Hi starting App");
+            appLogScreen.WriteLine("Hi starting App");
 
-            // prepare Input cursor
-            //Console.BackgroundColor = inputScreen.BackgroundColor;
-            //Console.ForegroundColor = inputScreen.TextColor;
-            //Console.SetCursorPosition(10, 14);
-            guiInputHandler = Task.Run(() => main.HandleConsoleInput(inputScreen));
-
+            // prepare Input cursor         
+            guiInputHandler = Task.Run(() => main.HandleConsoleInput(appLogScreen));
 
             uartInFocus = _myServices.GetCurrentService();
         }
 
         public async Task StopAsync(CancellationToken cancellationToken) {
-            inputScreen.WriteLine("Hi stopping App");
+            appLogScreen.WriteLine("Hi stopping App");
             foreach(var uart in uarts) {
                 await uart.Value.StopAsync(cancellationToken);
             }
