@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace ScreenLib {
     public class LineEnteredArgs : EventArgs {
@@ -10,11 +11,16 @@ namespace ScreenLib {
 
         public event EventHandler<LineEnteredArgs> LineEntered;
         protected T Model;
+       
 
         protected Position InputPos;
         public MainScreen(int x, int y, T model) : base(x, y, null) {
             this.Parent = this;
             Console.Title = String.Format("Screen {0} - {1} ", Size.Width, Size.Height);
+            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                Console.WindowWidth = x;
+                Console.WindowHeight = y;
+            }
             WritePosition(Size.Width - 2, Size.Height - 2, "+");
             InputPos = new Position(0, Size.Height - 2);
             Console.CursorLeft = InputPos.Left;

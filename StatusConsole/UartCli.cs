@@ -28,7 +28,6 @@ namespace StatusConsole {
         IConfigurationSection IUartService.GetScreenConfig() {
             return Config.GetSection("Screen");
         }
-
         
         Task IHostedService.StartAsync(CancellationToken cancellationToken) {
             try {

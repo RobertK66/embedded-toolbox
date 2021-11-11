@@ -69,7 +69,7 @@ namespace StatusConsole {
             
 
 
-            appLogScreen.WriteLine("Hi starting App");
+            appLogScreen.WriteLine("Use TAB to switch input control.");
 
             // prepare Input cursor         
             guiInputHandler = Task.Run(() => main.HandleConsoleInput(appLogScreen));
@@ -78,7 +78,7 @@ namespace StatusConsole {
         }
 
         public async Task StopAsync(CancellationToken cancellationToken) {
-            appLogScreen.WriteLine("Hi stopping App");
+            appLogScreen.WriteLine("Stopping App");
             foreach(var uart in uarts) {
                 await uart.Value.StopAsync(cancellationToken);
             }
