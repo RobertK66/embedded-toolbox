@@ -17,7 +17,7 @@ namespace StatusConsole {
 
 
         private int selIdx = -1;
-        public override void HandleConsoleInput(Screen logScreen, String debugOption) {
+        public override void HandleConsoleInput(Screen logScreen, String debugOption, int sleep) {
             String line = "";
             while(line != "quit") {
                 ConsoleKeyInfo? k = null;
@@ -25,12 +25,15 @@ namespace StatusConsole {
                     k = Console.ReadKey(true);
                 } else if (debugOption.Equals("B")) {
                     k = Console.ReadKey(false);
-                } else {
+                } else if (debugOption.Equals("C")) {
                     if (Console.KeyAvailable) {
                         k = Console.ReadKey(false);
                     } else {
-                        Thread.Sleep(100);
+                        Thread.Sleep(sleep);
                     }
+                } else {
+                    while (!Console.KeyAvailable) { }
+                    k = Console.ReadKey(false);
                 }
 
                 if (k != null) {
