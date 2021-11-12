@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace StatusConsole {
@@ -16,51 +17,66 @@ namespace StatusConsole {
 
 
         private int selIdx = -1;
-        public override void HandleConsoleInput(Screen logScreen) {
+        public override void HandleConsoleInput(Screen logScreen, String debugOption) {
             String line = "";
             while(line != "quit") {
-                ConsoleKeyInfo k = Console.ReadKey();
-                if(k.Key == ConsoleKey.Tab) {
-                    var saveLeft = Console.CursorLeft;
-                    Model.uartInFocus = Model._myServices.GetNextService();
-                    ConsoleColor cc = Model.uartInFocus.IsConnected() ? ConsoleColor.Green : ConsoleColor.Red;
-                    logScreen.Write("Switched to ");
-                    logScreen.WriteLine(Model.uartInFocus.GetInterfaceName(), cc);
-                    ClearInputLine(line);
-                    Console.Write(line);
-                } else if(k.Key == ConsoleKey.Enter) {
-                    Model.uartInFocus?.SendUart(line);
-                    LineBuffer.Add(line);
-                    selIdx = -1;
-                    ClearInputLine(line);
-                    line = "";
-                } else if(k.Key == ConsoleKey.Escape) {
-                    Clear(true);    //Todo: !? geht nicht mehr !?
-                } else if(k.Key == ConsoleKey.UpArrow) {
-                    if(LineBuffer.Count > 0) {
-                        if(selIdx == -1) {
-                            selIdx = LineBuffer.Count;
+                ConsoleKeyInfo? k = null;
+                if (debugOption.Equals("A")) {
+                    k = Console.ReadKey(true);
+                } else if (debugOption.Equals("B")) {
+                    k = Console.ReadKey(false);
+                } else {
+                    if (Console.KeyAvailable) {
+                        k = Console.ReadKey(false);
+                    } else {
+                        Thread.Sleep(100);
+                    }
+                }
+
+                if (k != null) {
+
+                    if (k?.Key == ConsoleKey.Tab) {
+                        var saveLeft = Console.CursorLeft;
+                        Model.uartInFocus = Model._myServices.GetNextService();
+                        ConsoleColor cc = Model.uartInFocus.IsConnected() ? ConsoleColor.Green : ConsoleColor.Red;
+                        logScreen.Write("Switched to ");
+                        logScreen.WriteLine(Model.uartInFocus.GetInterfaceName(), cc);
+                        ClearInputLine(line);
+                        Console.Write(line);
+                    } else if (k?.Key == ConsoleKey.Enter) {
+                        Model.uartInFocus?.SendUart(line);
+                        LineBuffer.Add(line);
+                        selIdx = -1;
+                        ClearInputLine(line);
+                        line = "";
+                    } else if (k?.Key == ConsoleKey.Escape) {
+                        Clear(true);    //Todo: !? geht nicht mehr !?
+                    } else if (k?.Key == ConsoleKey.UpArrow) {
+                        if (LineBuffer.Count > 0) {
+                            if (selIdx == -1) {
+                                selIdx = LineBuffer.Count;
+                            }
+                            selIdx--;
+                            if (selIdx >= 0) {
+                                ClearInputLine(line);
+                                line = LineBuffer[selIdx];
+                                Console.Write(line);
+                            }
                         }
-                        selIdx--;
-                        if(selIdx >= 0) {
+                    } else if (k?.Key == ConsoleKey.DownArrow) {
+                        if (selIdx >= 0) {
+                            selIdx++;
+                        }
+                        if (selIdx < LineBuffer.Count) {
                             ClearInputLine(line);
                             line = LineBuffer[selIdx];
                             Console.Write(line);
+                        } else {
+                            selIdx = 0;
                         }
-                    }
-                 } else if(k.Key == ConsoleKey.DownArrow) {
-                    if(selIdx >= 0) {
-                        selIdx++;
-                    }
-                    if(selIdx < LineBuffer.Count) {
-                        ClearInputLine(line);
-                        line = LineBuffer[selIdx];
-                        Console.Write(line);
                     } else {
-                        selIdx=0;
+                        line += k?.KeyChar;
                     }
-                 } else {
-                    line += k.KeyChar;
                 }
             }
             logScreen.WriteLine("Input Handler closed!");

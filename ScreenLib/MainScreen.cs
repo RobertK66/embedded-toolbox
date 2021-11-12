@@ -50,7 +50,7 @@ namespace ScreenLib {
 
         }
 
-        abstract public void HandleConsoleInput(Screen inputScreen);
+        abstract public void HandleConsoleInput(Screen inputScreen, string debugOption);
   
     }
 }

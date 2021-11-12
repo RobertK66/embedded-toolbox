@@ -1,7 +1,10 @@
 {
   "profiles": {
     "StatusConsole": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "remoteDebugEnabled": false,
+      "authenticationMode": "Windows",
+      "remoteDebugMachine": "192.168.177.26"
     }
   }
 }

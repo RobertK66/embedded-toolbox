@@ -16,13 +16,14 @@ namespace StatusConsole {
         public IUartService uartInFocus { get; set; }
 
         private Screen appLogScreen;
+        private String debugOption;
 
 
         // Constructor with IOC injection
         public HostedCmdlineApp(IUartServices service, IConfiguration conf) {
             _myServices = service ?? throw new ArgumentNullException(nameof(service));
             uarts = service.GetUartServices();
-
+            debugOption = conf.GetValue<String>("Option") ?? "A";
         }
 
         public async Task StartAsync(CancellationToken cancellationToken) {
@@ -72,7 +73,7 @@ namespace StatusConsole {
             appLogScreen.WriteLine("Use TAB to switch input control.");
 
             // prepare Input cursor         
-            guiInputHandler = Task.Run(() => main.HandleConsoleInput(appLogScreen));
+            guiInputHandler = Task.Run(() => main.HandleConsoleInput(appLogScreen, debugOption));
 
             uartInFocus = _myServices.GetCurrentService();
         }
