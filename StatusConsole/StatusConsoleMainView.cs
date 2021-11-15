@@ -32,7 +32,9 @@ namespace StatusConsole {
                         Thread.Sleep(sleep);
                     }
                 } else {
-                    while (!Console.KeyAvailable) { }
+                    while (!Console.KeyAvailable) {
+                        Thread.Sleep(sleep);
+                    }
                     k = Console.ReadKey(false);
                 }
 
