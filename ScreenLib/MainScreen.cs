@@ -18,6 +18,7 @@ namespace ScreenLib {
             this.Parent = this;
             Console.Title = String.Format("Screen {0} - {1} ", Size.Width, Size.Height);
             if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                // in Windows, we are allowed to resize the hosting Console window
                 Console.WindowWidth = x;
                 Console.WindowHeight = y;
             }

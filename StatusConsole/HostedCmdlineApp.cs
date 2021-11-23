@@ -10,10 +10,10 @@ using ScreenLib;
 namespace StatusConsole {
     public class HostedCmdlineApp : IHostedService {
 
-        public readonly IUartServices _myServices;
-        private readonly Dictionary<string, IUartService> uarts;
+        public readonly IConfigurableServices _myServices;
+        private readonly Dictionary<string, ITtyService> uarts;
         private Task guiInputHandler;
-        public IUartService uartInFocus { get; set; }
+        public ITtyService uartInFocus { get; set; }
 
         private Screen appLogScreen;
         private String debugOption;
@@ -21,9 +21,9 @@ namespace StatusConsole {
 
 
         // Constructor with IOC injection
-        public HostedCmdlineApp(IUartServices service, IConfiguration conf) {
+        public HostedCmdlineApp(IConfigurableServices service, IConfiguration conf) {
             _myServices = service ?? throw new ArgumentNullException(nameof(service));
-            uarts = service.GetUartServices();
+            uarts = service.GetTtyServices();
             debugOption = conf.GetValue<String>("Option") ?? "A";
             sleepTime = conf.GetValue<int?>("Sleep") ?? 100;
         }

@@ -6,21 +6,21 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace StatusConsole {
-    public class ObcEm2Uarts : IUartServices {
+    public class ObcEm2Uarts : IConfigurableServices {
 
-        private Dictionary<string, IUartService> services = new Dictionary<string, IUartService>();
+        private Dictionary<string, ITtyService> services = new Dictionary<string, ITtyService>();
         private List<string> keys = new List<string>();
-        private IUartService currentService = null;
+        private ITtyService currentService = null;
 
         public ObcEm2Uarts(IConfiguration conf) {
             var uartConfigs = conf?.GetSection("UARTS").GetChildren();
             foreach(var uc in uartConfigs) {
                 var type = Type.GetType(uc.GetValue<String>("Impl")??"dummy");
                 if(type != null) {
-                    IUartService uartService = (IUartService)Activator.CreateInstance(type);
-                    uartService.Initialize(uc);
+                    ITtyService ttyService = (ITtyService)Activator.CreateInstance(type);
+                    ttyService.Initialize(uc);
                     
-                    services.Add(uc.Key, uartService);
+                    services.Add(uc.Key, ttyService);
                     keys.Add(uc.Key);
                 } else {
                     throw new ApplicationException("UART " + uc.Key + " Impl class not found!" );
@@ -31,15 +31,15 @@ namespace StatusConsole {
             }
         }
 
-        public Dictionary<string, IUartService> GetUartServices() {
+        public Dictionary<string, ITtyService> GetTtyServices() {
             return services;
         }
 
-        public IUartService GetCurrentService() {
+        public ITtyService GetCurrentService() {
             return currentService;
         }
 
-        public IUartService GetNextService() {
+        public ITtyService GetNextService() {
             int curIdx = keys.FindIndex((s) => s == currentService.GetInterfaceName());
             if(curIdx != -1) {
                 curIdx++;

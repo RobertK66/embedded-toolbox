@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Text;
 
 namespace ScreenLib
 {
@@ -57,7 +57,7 @@ namespace ScreenLib
 
         public void Write(String message, ConsoleColor? col = null) {
             String tail = String.Empty;
-            if(message.Length > (Size.Width - CursorPos.Left)) {
+            if(message.Length >= (Size.Width - CursorPos.Left)) {
                 String toPrint = message.Substring(0, (Size.Width - CursorPos.Left));
                 switch(HoriType) {
                 case HorizontalType.CUT:
@@ -76,10 +76,15 @@ namespace ScreenLib
             var cs = GetConsoleState();
             Console.BackgroundColor = this.BackgroundColor;
             Console.ForegroundColor = col??this.TextColor;
+            //if (((Offset.Left + CursorPos.Left) >= Console.BufferWidth-1) || ((Offset.Left + CursorPos.Left) < 0)) {
+            //    int i = 55;
+            //}
             Console.SetCursorPosition(Offset.Left + CursorPos.Left, Offset.Top + CursorPos.Top);
             Console.Write(message);
             CursorPos.Left += message.Length;
             RestoreConsoleState(cs);
+
+
 
             if(!String.IsNullOrEmpty(tail)) {
                 WriteLine("");
@@ -87,7 +92,7 @@ namespace ScreenLib
                     CursorPos.Top--;
                 }
                 Write(tail);
-            }
+            } 
         }
 
 
@@ -188,6 +193,49 @@ namespace ScreenLib
                     child.Clear(deep);
                 }
             }
+        }
+
+        private byte[] tail;
+
+        public void WriteData(byte[] inBuffer, int bytesRead) {
+
+            byte[] buffer;
+            if (tail != null) {
+                buffer = new byte[bytesRead + tail.Length];
+                Array.Copy(tail, buffer, tail.Length);
+                Array.Copy(inBuffer, 0, buffer, tail.Length, bytesRead);
+                bytesRead += tail.Length;
+            } else { 
+                buffer = inBuffer;
+            }
+
+            UTF8Encoding encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+            String received = String.Empty;
+            int bytesProcessed = bytesRead;
+
+            while(String.IsNullOrEmpty(received)) {
+                try {
+                    received = encoding.GetString(buffer, 0, bytesProcessed);
+                } catch (Exception ) {
+                    received = String.Empty;
+                    bytesProcessed--;
+                }
+            }
+
+            if (bytesProcessed < bytesRead) {
+                tail = new byte[bytesRead - bytesProcessed];
+                Array.Copy(buffer, bytesProcessed, tail, 0, bytesRead - bytesProcessed);
+            } else {
+                tail = null;
+            }
+
+            int p;
+            while ((p = received.IndexOf('\n')) != -1) {
+                WriteLine(received.Substring(0, p));
+                received = received.Substring(p + 1);
+            }
+            Write(received);
+            
         }
     }
 }

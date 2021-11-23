@@ -8,5 +8,6 @@ namespace ScreenLib {
     public interface IConOutput {
         void WriteLine(string v, ConsoleColor? col = null);
         void Write(string v, ConsoleColor? col = null);
+        void WriteData(byte[] buffer, int bytesRead);
     }
 }

@@ -12,9 +12,7 @@ namespace StatusConsole {
         private List<String> LineBuffer = new List<string>();
 
         public StatusConsoleMainView(int x, int y, HostedCmdlineApp model) : base(x, y, model) {
-
         }
-
 
         private int selIdx = -1;
         public override void HandleConsoleInput(Screen logScreen, String debugOption, int sleep) {
@@ -85,7 +83,8 @@ namespace StatusConsole {
                 }
             }
             logScreen.WriteLine("Input Handler closed!");
-            _ = Model.StopAsync(new System.Threading.CancellationToken());
+            Model.StopAsync(new System.Threading.CancellationToken()).Wait();
+            Environment.Exit(-22);          
         }
 
         private void ClearInputLine(string line) {
@@ -95,3 +94,5 @@ namespace StatusConsole {
         }
     }
 }
+
+

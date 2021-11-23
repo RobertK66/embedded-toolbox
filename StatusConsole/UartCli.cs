@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace StatusConsole {
-    public class UartCli : IUartService {
+    public class UartCli : ITtyService {
         private IConfigurationSection Config;
         private SerialPort  Port;
         private bool Continue;
@@ -21,11 +21,11 @@ namespace StatusConsole {
             Config = cs;
         }
 
-        string IUartService.GetInterfaceName() {
+        string ITtyService.GetInterfaceName() {
             return Config.Key;
         }
 
-        IConfigurationSection IUartService.GetScreenConfig() {
+        IConfigurationSection ITtyService.GetScreenConfig() {
             return Config.GetSection("Screen");
         }
         
@@ -83,7 +83,7 @@ namespace StatusConsole {
             }
         }
 
-        void IUartService.SendUart(string line) {
+        void ITtyService.SendUart(string line) {
             if(Continue) {
                 Port?.WriteLine(line);
             }

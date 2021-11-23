@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace StatusConsole {
-    public interface IUartService : IHostedService {
+    public interface ITtyService : IHostedService {
         void Initialize(IConfigurationSection cs);
         void SetScreen(IConOutput scr);
         void SendUart(string line);
