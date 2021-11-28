@@ -12,66 +12,69 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace StatusConsole {
-
+    //
     // This allows to access a remote socket on hostname:PORTNR 
     // If the remote machine is running linux there we could connect up any available tty device by running
     //    nc -l 9000 > /dev/ttyUSB0 < /dev/ttyUSB0
     // where 9000 is the port number and ttyUSB0 an example device.
-
+    // The version
+    //    while :; do nc -l 9801 > /dev/ttyUSB1 < /dev/ttyUSB1 ; done
+    // gives repeated call to the nc commans when connection was closed somehow.
+    //
     public class RemoteCli : ITtyService {
-        private IConfigurationSection Config;
-        Socket sock = null;
+        protected String IfName;
+
+        private String HostName;
+        private int Port;
+
+        private const int BufferSize = 255;
+        private byte[] Buffer = new byte[BufferSize+5];
+        private Socket socket = null;
         private bool Continue;
+        private String NewLine = String.Empty;
+
+        // TODO: refactor to seperate UI Config ...???...
         IConOutput Screen;
-        Task Receiver;
-        char NewLine = '\n';
+        private IConfigurationSection screenConfig;
 
         public void Initialize(IConfigurationSection cs) {
-            Config = cs;
+            IfName = cs.Key;
+            HostName = cs?.GetValue<String>("RemoteHost") ?? "localhost";
+            Port = cs?.GetValue<int?>("RemotePort") ?? 9000;
+            NewLine = cs?.GetValue<String>("NewLine");
+
+            screenConfig = cs.GetSection("Screen");
         }
 
         string ITtyService.GetInterfaceName() {
-            return Config.Key;
+            return IfName;
         }
 
         IConfigurationSection ITtyService.GetScreenConfig() {
-            return Config.GetSection("Screen");
+            return screenConfig;
         }
-        
+
+        // TODO: refactor ....
+        public void SetScreen(IConOutput scr) {
+            Screen = scr;
+        }
+
         Task IHostedService.StartAsync(CancellationToken cancellationToken) {
             try {
-                String server = Config?.GetValue<String>("RemoteHost") ?? "localhost";
-                int port = Config?.GetValue<int?>("RemotePort") ?? 9000;
-
-                // Instanziere ein gültiges Socket Objekt mit den übergebenen Argumenten
-                sock = ConnectSocket(server, port);
-              
-                //_serialPort.ReadTimeout = 10;
-                Screen.WriteLine("Remote port " + server + ":" + port + " connected");
-                Continue = true;
-
-
-                // Receiver = Task.Run(() => Read());
-                sock.BeginReceive(buffer, 0, 5, 0, new AsyncCallback(ReceiveCallback), sock);
-
+                BeginnConnect(HostName, Port);
             } catch (Exception ex) {
                 Continue = false;
-                //ConsoleColor csave = Screen.TextColor;
-                //Screen.TextColor = ConsoleColor.Red;
-                Screen.WriteLine("Error starting '" + Config?.GetValue<String>("ComName")??"<null>->COM1" + "' !", ConsoleColor.Red);
+                Screen.WriteLine("Error starting '" + IfName + "' !", ConsoleColor.Red);
                 Screen.WriteLine(ex.Message, ConsoleColor.Red);
-                //Screen.TextColor = csave;
             }
             return Task.CompletedTask;
         }
 
-        byte[] buffer = new byte[256];
+        // Searches for all Host Endpoints and initates Connect to (all of) them.
+        private List<IAsyncResult> BeginnConnect(string server, int port) {
+            List<IAsyncResult> retVal = new List<IAsyncResult> ();
 
-        // Initialisiert die Socketverbindung und gibt diese zurück
-        private static Socket ConnectSocket(string server, int port) {
-            Socket sock = null;
             IPHostEntry hostEntry = null;
-
             hostEntry = Dns.GetHostEntry(server);
 
             // Nutze die Eigenschaft AddressFamily von IPEndPoint um Konflikte zwischen
@@ -81,93 +84,68 @@ namespace StatusConsole {
                 Socket tempSocket = new Socket(ipo.AddressFamily,
                                                SocketType.Stream,
                                                ProtocolType.Tcp);
-
-                tempSocket.Connect(ipo);
-
-                if (tempSocket.Connected) {
-                    sock = tempSocket;
-                    break;
-                } else {
-                    continue;
-                }
+                retVal.Add(tempSocket.BeginConnect(ipo, ConnectCallback, tempSocket));
             }
-            return sock;
+            return retVal;
         }
 
+        private void ConnectCallback(IAsyncResult ar) {
+            try {
+                // Retrieve the socket from the state object.  
+                if (socket == null) {     // First one wins, all other are ignored.....
+                    socket = (Socket)ar.AsyncState;
+                    // Complete the connection.  
+                    socket.EndConnect(ar);
+                    Screen.WriteLine("Remote port " + HostName + ":" + Port + " connected");
+
+                    Continue = true;
+                    // Start Receiving data by entering a data Buffer and a callback.
+                    socket.BeginReceive(Buffer, 0, BufferSize, 0, new AsyncCallback(ReceiveCallback), null);
+                } else {
+                    Screen.WriteLine("Duplicate connection to host !!!");
+                    // If more than one addresss was tried. gracefully close others. (to be tested somehow ;-) .....)
+                    ((Socket)ar.AsyncState)?.EndConnect(ar);
+                    ((Socket)ar.AsyncState)?.Disconnect(false);
+                }
+            } catch (Exception ex) {
+                socket = null;
+                Continue = false;
+                Screen.WriteLine("Error connecting " + IfName + " to " + HostName + ":" + Port + " !", ConsoleColor.Red);
+                Screen.WriteLine(ex.Message, ConsoleColor.Red);
+            }
+        }
 
         private void ReceiveCallback(IAsyncResult ar) {
             try {
-                // Retrieve the state object and the client socket
-                // from the asynchronous state object.  
-                Socket client = (Socket)(ar.AsyncState);
-
-                // Read data from the remote device.  
-                int bytesRead = client.EndReceive(ar);
-
+                int bytesRead = socket.EndReceive(ar);
                 if (bytesRead > 0) {
-                    // Encoding is ISO Layer 6 !!!??? 
-                    // How to solve this here for chunked Buffer reads !?
-                    //String received = Encoding.UTF8.GetString(buffer, 0, bytesRead);    
-
-                    //for (int i=0; i<received.Length; i++) {
-                    //    String singleChar = received.Substring(i, 1);
-                    //    if (singleChar.Equals(NewLine)) {
-                    //        Screen.WriteLine("");
-                    //    } else {
-                    //        Screen.Write(singleChar);
-                    //    }
-                    //}
-                    Screen.WriteData(buffer, bytesRead);
-                    // Get the rest of the data.  
-                    client.BeginReceive(buffer, 0, 5, 0,
-                        new AsyncCallback(ReceiveCallback), client);
+                    Screen.WriteData(Buffer, bytesRead);
+                    // Get next chunk of the data.  
+                    socket.BeginReceive(Buffer, 0, BufferSize, 0, new AsyncCallback(ReceiveCallback), null);
                 } else {
-                    // Nothing left -> rrestart receive again....
-                    // 
-                    Screen.Write(".");
-                    client.BeginReceive(buffer, 0, 5, 0,
-                        new AsyncCallback(ReceiveCallback), client);
+                    // Nothing left -> This gets called only if socket was closed. Either when Disconnect() was called locally or remote connection closed.
+                    Screen.WriteLine("Socket to remote port " + HostName + ":" + Port + " closed.");
+                    Continue = false;
+                    socket?.Disconnect(false);
+                    socket = null;
                 }
             } catch (Exception e) {
-                Console.WriteLine(e.ToString());
+                Screen.WriteLine("Exception in ReceiverCallback: " + e.ToString(), ConsoleColor.Red);
             }
         }
 
-        //public void Read() {
-        //    int idx = 0;
-        //    byte[] buffer = new byte[256];
-
-        //    while (Continue) {
-        //        int rec = sock.Receive(buffer, 1, SocketFlags.None);
-        //        if (rec == 1) {
-        //            char ch = (char)buffer[0];
-        //            if (ch.ToString().Equals(NewLine)) {
-        //                Screen.WriteLine("");
-        //            } else {
-        //                Screen.Write(ch.ToString());
-        //            }
-        //        }
-        //    }
-
-        //}
-
-
-
-
         async Task IHostedService.StopAsync(CancellationToken cancellationToken) {
-            // terminate the reader Task.
-            Continue = false;
-            if(Receiver != null) {
-                //await Receiver;       // reader Task will be finished and execution "awaits it" and continues afterwards. (Without blocking any thread here)
-                sock.Close();
-                Screen.WriteLine("Socket closed.");
+            if(socket != null) {
+                if (socket.Connected) {
+                    await socket.DisconnectAsync(false, cancellationToken);
+                }
             }
         }
 
         void ITtyService.SendUart(string line) {
-            if(Continue) {
-                line += '\n';
-                sock.Send(Encoding.UTF8.GetBytes(line));
+            if(IsConnected()) {
+                line += NewLine;
+                socket.Send(Encoding.UTF8.GetBytes(line));
             }
         }
 
@@ -175,9 +153,5 @@ namespace StatusConsole {
             return Continue;
         }
 
-        public void SetScreen(IConOutput scr) {
-            Screen = scr;
-        }
-      
     }
 }

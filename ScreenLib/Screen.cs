@@ -76,9 +76,9 @@ namespace ScreenLib
             var cs = GetConsoleState();
             Console.BackgroundColor = this.BackgroundColor;
             Console.ForegroundColor = col??this.TextColor;
-            //if (((Offset.Left + CursorPos.Left) >= Console.BufferWidth-1) || ((Offset.Left + CursorPos.Left) < 0)) {
-            //    int i = 55;
-            //}
+            if (((Offset.Left + CursorPos.Left) >= Console.BufferWidth-1) || ((Offset.Left + CursorPos.Left) < 0)) {
+                Console.BackgroundColor = ConsoleColor.Yellow;
+            }
             Console.SetCursorPosition(Offset.Left + CursorPos.Left, Offset.Top + CursorPos.Top);
             Console.Write(message);
             CursorPos.Left += message.Length;
@@ -213,7 +213,7 @@ namespace ScreenLib
             String received = String.Empty;
             int bytesProcessed = bytesRead;
 
-            while(String.IsNullOrEmpty(received)) {
+            while(String.IsNullOrEmpty(received) && (bytesProcessed > 0)) {
                 try {
                     received = encoding.GetString(buffer, 0, bytesProcessed);
                 } catch (Exception ) {

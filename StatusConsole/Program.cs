@@ -38,7 +38,7 @@ namespace StatusConsole {
                        })
                        .ConfigureServices(services => {
                            services.AddHostedService<HostedCmdlineApp>();
-                           services.AddTransient<IConfigurableServices, ObcEm2Uarts>();
+                           services.AddTransient<IConfigurableServices, ServiceCollection>();
                            
                        });
         }

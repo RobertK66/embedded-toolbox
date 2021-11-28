@@ -15,27 +15,13 @@ namespace StatusConsole {
         }
 
         private int selIdx = -1;
-        public override void HandleConsoleInput(Screen logScreen, String debugOption, int sleep) {
+        public override void HandleConsoleInput(Screen logScreen) {
             String line = "";
-            while(line != "quit") {
-                ConsoleKeyInfo? k = null;
-                if (debugOption.Equals("A")) {
-                    k = Console.ReadKey(true);
-                } else if (debugOption.Equals("B")) {
-                    k = Console.ReadKey(false);
-                } else if (debugOption.Equals("C")) {
-                    if (Console.KeyAvailable) {
-                        k = Console.ReadKey(false);
-                    } else {
-                        Thread.Sleep(sleep);
-                    }
-                } else {
-                    while (!Console.KeyAvailable) {
-                        Thread.Sleep(sleep);
-                    }
-                    k = Console.ReadKey(false);
+            while (line != "quit") {
+                while (!Console.KeyAvailable) {
+                    Thread.Sleep(100);
                 }
-
+                ConsoleKeyInfo? k = Console.ReadKey(false);
                 if (k != null) {
 
                     if (k?.Key == ConsoleKey.Tab) {
@@ -84,7 +70,7 @@ namespace StatusConsole {
             }
             logScreen.WriteLine("Input Handler closed!");
             Model.StopAsync(new System.Threading.CancellationToken()).Wait();
-            Environment.Exit(-22);          
+            Environment.Exit(-22);
         }
 
         private void ClearInputLine(string line) {

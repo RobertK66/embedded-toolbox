@@ -19,6 +19,12 @@
     <ProjectReference Include="..\ScreenLib\ScreenLib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="scripts\ComToPort.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>

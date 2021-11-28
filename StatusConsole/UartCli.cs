@@ -46,11 +46,8 @@ namespace StatusConsole {
                 Receiver = Task.Run(() => Read());
             } catch (Exception ex) {
                 Continue = false;
-                //ConsoleColor csave = Screen.TextColor;
-                //Screen.TextColor = ConsoleColor.Red;
                 Screen.WriteLine("Error starting '" + Config?.GetValue<String>("ComName")??"<null>->COM1" + "' !", ConsoleColor.Red);
                 Screen.WriteLine(ex.Message, ConsoleColor.Red);
-                //Screen.TextColor = csave;
             }
             return Task.CompletedTask;
         }
