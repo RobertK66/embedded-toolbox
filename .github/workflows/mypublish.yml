@@ -40,7 +40,7 @@ jobs:
           tag=$(git describe --tags --abbrev=0)
           release_name="App-$tag-${{ matrix.target }}"
           # Build everything
-          dotnet publish StatusConsole/StatusConsole.csproj --framework net6.0 --runtime "${{ matrix.target }}" -c Release -o "$release_name" "${{ matrix.options }}"
+          dotnet publish StatusConsole/StatusConsole.csproj --framework net6.0 --self-contained --runtime "${{ matrix.target }}" -c Release -o "$release_name" "${{ matrix.options }}"
           # Pack files
           if [ "${{ matrix.target }}" == "win-x64" ]; then
             # Pack to zip for Windows
