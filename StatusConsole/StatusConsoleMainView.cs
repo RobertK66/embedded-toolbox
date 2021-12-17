@@ -111,9 +111,11 @@ namespace StatusConsole {
                     } else if (k?.Key == ConsoleKey.Backspace) {
                         ClearInputLine(line);
                         if (editPos == null) {
-                            line = line.Substring(0, line.Length - 1);
-                            Console.Write(line);
-                            Console.SetCursorPosition(InputPos.Left + line.Length, InputPos.Top);
+                            if (line.Length > 0) {
+                                line = line.Substring(0, line.Length - 1);
+                                Console.Write(line);
+                                Console.SetCursorPosition(InputPos.Left + line.Length, InputPos.Top);
+                            }
                         } else {
                             if (editPos > 0) { 
                                 int x = (int)editPos;
