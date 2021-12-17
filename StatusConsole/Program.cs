@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Windows.Input;
 using ScreenLib;
 
 namespace StatusConsole {
@@ -16,6 +17,7 @@ namespace StatusConsole {
     {
         public async static Task<int> Main(string[] args) { 
             var host = CreateHostBuilder(args);
+                 
             await host.RunConsoleAsync();
             // This lines are not reached if Environment.Exit() is used somewhere in Services.....
             Console.WriteLine("Exit Code in Main[]:" + Environment.ExitCode);

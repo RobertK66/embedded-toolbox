@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
+
 namespace ScreenLib {
     public class LineEnteredArgs : EventArgs {
         public String Cmd { get; set; }
@@ -22,34 +23,34 @@ namespace ScreenLib {
                 Console.WindowWidth = x;
                 Console.WindowHeight = y;
             }
-            WritePosition(Size.Width - 2, Size.Height - 2, "+");
+            WritePosition(Size.Width - 1, Size.Height - 1, "+");
             InputPos = new Position(0, Size.Height - 2);
             Console.CursorLeft = InputPos.Left;
             Console.CursorTop = InputPos.Top;
             Model = model;
         }
 
-        public override void Clear(bool deep) {
-            base.Clear(deep);
-            WritePosition(Size.Width - 2, Size.Height - 2, "*");
+        public override void Fill(char c, bool deep) {
+            base.Fill(c, deep);
+            WritePosition(Size.Width - 1, Size.Height - 1, "*");
         }
 
-        public void RunLine(String exitCmd) {
-            string v = "";
-            while(!v.Equals(exitCmd)) {
-                Console.SetCursorPosition(InputPos.Left, InputPos.Top);
-                v = Console.ReadLine();
-                if(v.Equals("clr")) {
-                    Clear(true);
-                } else {
-                    String line = "";
-                    line = line.PadLeft(this.Size.Width - InputPos.Left);
-                    WritePosition(InputPos.Left, InputPos.Top, line);
-                    LineEntered?.Invoke(this, new LineEnteredArgs() { Cmd = v });
-                }
-            }
+        //public void RunLine(String exitCmd) {
+        //    string v = "";
+        //    while(!v.Equals(exitCmd)) {
+        //        Console.SetCursorPosition(InputPos.Left, InputPos.Top);
+        //        v = Console.ReadLine();
+        //        if(v.Equals("clr")) {
+        //            Clear(true);
+        //        } else {
+        //            String line = "";
+        //            line = line.PadLeft(this.Size.Width - InputPos.Left);
+        //            WritePosition(InputPos.Left, InputPos.Top, line);
+        //            LineEntered?.Invoke(this, new LineEnteredArgs() { Cmd = v });
+        //        }
+        //    }
 
-        }
+        //}
 
         abstract public void HandleConsoleInput(Screen inputScreen);
   

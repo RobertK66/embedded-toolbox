@@ -58,12 +58,12 @@ namespace StatusConsole {
                 scr.TextColor = txtCol;
                 scr.BackgroundColor = bkgCol;
                 uart.Value.SetScreen(scr);
-                scr.Clear();
+                scr.Fill();
                 await uart.Value.StartAsync(cancellationToken);
             }
 
-            appLogScreen = main.AddScreen(0, mainY, new Screen(150, 12, ConsoleColor.DarkBlue, ConsoleColor.White));
-            appLogScreen.Clear();
+            appLogScreen = main.AddScreen(0, mainY, new Screen(mainX, 12, ConsoleColor.DarkBlue, ConsoleColor.White));
+            appLogScreen.Fill();
             
 
 

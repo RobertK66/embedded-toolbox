@@ -101,7 +101,7 @@ namespace ScreenLib
                 String tail = String.Empty;
                 var cs = GetConsoleState();
                 if ((CursorPos.Top == 0) && (VertType == VerticalType.RESTART)) {
-                    Clear();
+                    Fill();
                 }
                 if(message.Length > (Size.Width - CursorPos.Left)) {
                     String toPrint = message.Substring(0, (Size.Width - CursorPos.Left));
@@ -157,7 +157,8 @@ namespace ScreenLib
         }
 
         public void WritePosition(int x, int y, String message, int fieldLen = -1) {
-            if((x < Size.Width - 1) && (y < Size.Height - 1)) {
+            //if ((x < Size.Width - 1) && (y < Size.Height - 1)) {
+            if ((x < Size.Width) && (y < Size.Height)) {
                 int allowedLen = (Size.Width - x);
                 if(fieldLen > 0) {
                     allowedLen = Math.Min(allowedLen, fieldLen);
@@ -168,19 +169,24 @@ namespace ScreenLib
                     message = message.Substring(0, allowedLen);
                 }
                 var cs = GetConsoleState();
-                Console.SetCursorPosition(Offset.Left + x, Offset.Top + y);
+                try {
+                    Console.SetCursorPosition(Offset.Left + x, Offset.Top + y);
+                } catch (ArgumentOutOfRangeException) {
+                }
                 Console.BackgroundColor = this.BackgroundColor;
                 Console.ForegroundColor = this.TextColor;
                 Console.Write(message);
+                
                 RestoreConsoleState(cs);
             }
         }
 
-        public virtual void Clear(bool deep=false) {
+        public virtual void Fill(char c = ' ', bool deep=false) {
             var cs = GetConsoleState();
-            String line = "";
-            line = line.PadLeft(this.Size.Width);
+            String line = new string(c, this.Size.Width);
+            //line =  line.PadLeft(this.Size.Width);
             Console.BackgroundColor = this.BackgroundColor;
+            Console.ForegroundColor = this.TextColor;
             for (int l = Offset.Top; l< Offset.Top + Size.Height; l++) {
                 Console.SetCursorPosition(Offset.Left, l);    
                 Console.Write(line);
@@ -190,7 +196,7 @@ namespace ScreenLib
 
             if (deep) {
                 foreach(Screen child in Children) {
-                    child.Clear(deep);
+                    child.Fill(c, deep);
                 }
             }
         }
