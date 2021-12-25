@@ -71,6 +71,11 @@ namespace StatusConsole.OBC {
                         return createL7AppEvents(data, len);
                     case 1:
                         return createTimerEvents(data, len);
+                    case 2:
+                        return createSensorEvents(data, len);
+                    case 3:
+                        return createMemoryEvents(data, len);
+
                     case 0x80:
                         return createMramEvents(data, len);
                     case 0x81:
@@ -109,6 +114,17 @@ namespace StatusConsole.OBC {
             }
         }
 
+        private ObcEvent createSensorEvents(byte[] data, int len) {
+            var eventNr = data[1] & 0x3F;
+            switch (eventNr) {
+                case 1:
+                    return new SensorValuesEvent(data, len);
+                default:
+                    return new ObcEvent(data, len);
+            }
+        }
+
+
         private ObcEvent createSdcardEvents(byte[] data, int len) {
             var eventNr = data[1] & 0x3F;
             switch (eventNr) {
@@ -126,6 +142,19 @@ namespace StatusConsole.OBC {
             switch (eventNr) {
                 case 1:
                     return new MramJobErrorEvent(data, len);
+                default:
+                    return new ObcEvent(data, len);
+            }
+        }
+
+        private static ObcEvent createMemoryEvents(byte[] data, int len) {
+            var eventNr = data[1] & 0x3F;
+            switch (eventNr) {
+                case 1:
+                    return new MemoryOperationalEvent(data, len);
+                case 2:
+                    return new ObcBlock0UpdatedEvent(data, len);
+
                 default:
                     return new ObcEvent(data, len);
             }

@@ -27,6 +27,7 @@ namespace StatusConsole.OBC {
             this.severity = (EventSeverity)((data[1] & 0xC0) >> 6);
             this.eventNr = data[1] & 0x3F;
             this.dataLen = len;
+            this.MyText = BitConverter.ToString(data, 2, len - 2);
         }
 
         public ObcEvent(Byte[] data, int len, String ModuleName, String EventName) : this(data, len) { 
@@ -104,7 +105,7 @@ namespace StatusConsole.OBC {
 
         public override string ToString() {
             if (String.IsNullOrEmpty(MyText)) {
-                return $"{severity}: M-{moduleNr} E-{eventNr} len:{dataLen}";
+                return $"{severity}: M-{moduleNr} E-{eventNr} len:{dataLen} {MyText}";
             } else {
                 return MyText;
             }
