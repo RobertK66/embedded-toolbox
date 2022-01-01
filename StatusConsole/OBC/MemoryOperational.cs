@@ -7,7 +7,7 @@ namespace StatusConsole.OBC {
                 string sdcOp = BitConverter.ToString(data, 2, 1);
                 string mramOp = BitConverter.ToString(data, 3, 1);
 
-                string instanceName = System.Text.Encoding.ASCII.GetString(data, 3, 16);
+                string instanceName = System.Text.Encoding.ASCII.GetString(data, 4, 16);
                 MyText = $"Sdc: {sdcOp} Mram: {mramOp} Obc: '{instanceName}'";
             } else {
                 MyText = "Data Error - wrong len";
