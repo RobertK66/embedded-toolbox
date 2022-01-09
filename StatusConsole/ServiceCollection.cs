@@ -20,7 +20,7 @@ namespace StatusConsole {
                 var type = Type.GetType(uc.GetValue<String>("Impl")??"dummy");
                 if(type != null) {
                     ITtyService ttyService = (ITtyService)Activator.CreateInstance(type);
-                    ttyService.Initialize(uc);
+                    ttyService.Initialize(uc, conf);
                     
                     services.Add(uc.Key, ttyService);
                     keys.Add(uc.Key);

@@ -37,7 +37,7 @@ namespace StatusConsole {
         IConOutput Screen;
         private IConfigurationSection screenConfig;
 
-        public void Initialize(IConfigurationSection cs) {
+        public void Initialize(IConfigurationSection cs, IConfiguration rootConfig) {
             IfName = cs.Key;
             HostName = cs?.GetValue<String>("RemoteHost") ?? "localhost";
             Port = cs?.GetValue<int?>("RemotePort") ?? 9000;

@@ -20,10 +20,12 @@ namespace StatusConsole {
         OBC.ObcDebug debug;
         IConfigurationSection debugConfig;
 
-        public void Initialize(IConfigurationSection cs) {
-            Config = cs;
+        public void Initialize(IConfigurationSection cs, IConfiguration rootConfig ) {
+            Config = cs;    
             String configName = Config?.GetValue<String>("ImplConfigSection");
-            debugConfig = cs?.GetSection(configName);
+            // The value of "ImplsConfigSection" has the name of another Config Section, which we have to search for in the whole appsettings config....
+            // TODO: Refactor the main app setting, appstart and hierachies of classes and IOC and so on......
+            debugConfig = rootConfig?.GetSection(configName);
         }
 
         string ITtyService.GetInterfaceName() {

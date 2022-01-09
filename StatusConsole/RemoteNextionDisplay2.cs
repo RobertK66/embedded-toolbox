@@ -23,7 +23,7 @@ namespace StatusConsole {
 
         private NextionL3 Nextion = new NextionL3();
 
-        public void Initialize(IConfigurationSection cs) {
+        public void Initialize(IConfigurationSection cs, IConfiguration rootConfig) {
             Config = cs;
             Nextion.NextionEventReceived += Nextion_NextionEventReceived;
         }

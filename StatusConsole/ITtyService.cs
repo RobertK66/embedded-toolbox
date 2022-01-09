@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace StatusConsole {
     public interface ITtyService : IHostedService {
-        void Initialize(IConfigurationSection cs);
+        void Initialize(IConfigurationSection cs, IConfiguration rootConfig);
         void SetScreen(IConOutput scr);
         void SendUart(string line);
 

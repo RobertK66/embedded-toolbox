@@ -20,12 +20,12 @@ namespace StatusConsole.OBC {
         Byte[] rxData = new Byte[1000];
         int rxIdx = 0;
         private IConOutput screen;
-        private IConfigurationSection config;
+        private EventFactory eventFactory;
 
 
         public ObcDebug(IConfigurationSection debugConfig, IConOutput screen) {
             this.screen = screen;
-            config = debugConfig;
+            eventFactory = new EventFactory(debugConfig);
         }
 
         internal void ProcessByte(int dataByte) {
@@ -41,7 +41,7 @@ namespace StatusConsole.OBC {
                     break;
                 case L2Status.DATA:
                     if (dataByte == 0x7E) {
-                        ProcessData(rxData, rxIdx);
+                        ProcessFrame(rxData, rxIdx);
                         Status = L2Status.IDLE;
                         rxIdx = 0;
                     } else if (dataByte == 0x7D) {
@@ -55,10 +55,43 @@ namespace StatusConsole.OBC {
             }
         }
 
-        private void ProcessData(byte[] rxData, int len) {
-            //throw new NotImplementedException();
-            var package = createOBCEvent(rxData, len);
-            screen.WriteLine( package.ToString() );
+        private void ProcessFrame(byte[] rxData, int len) {
+            if (len > 2) {
+                var moduleId = rxData[0];
+                var eventId = (byte)(rxData[1] & 0x3F);
+                var severity = (EventSeverity)((rxData[1] & 0xC0) >> 6);
+
+                string eventString = eventFactory.GetAsString(moduleId, eventId, rxData, len);
+                if (severity == EventSeverity.INFO) {
+                    screen.WriteLine(eventString);
+                } else {
+                    ConsoleColor col = ConsoleColor.Blue;
+                    if (severity == EventSeverity.WARNING) {
+                        col = ConsoleColor.Green;
+                    } else if (severity == EventSeverity.ERROR) {
+                        col = ConsoleColor.Red;
+                    }
+                    screen.WriteLine(eventString, col);
+                }
+
+
+            } else {
+                // No usefull data in this 'frame'.
+            }
+
+
+            //ObcEvent package = createOBCEvent(rxData, len);
+            //if (package?.severity == EventSeverity.INFO) {
+            //    screen.WriteLine(package.ToString());
+            //} else {
+            //    ConsoleColor col = ConsoleColor.Blue;
+            //    if (package?.severity == EventSeverity.WARNING) {
+            //        col = ConsoleColor.Green;
+            //    } else if (package?.severity == EventSeverity.ERROR) {
+            //        col = ConsoleColor.Red;
+            //    }
+            //    screen.WriteLine(package?.ToString(), col);
+            //}
         }
 
 

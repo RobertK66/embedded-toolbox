@@ -14,7 +14,7 @@ namespace StatusConsole.OBC {
 
     public class ObcEvent {
         protected int  moduleNr;
-        protected EventSeverity severity;
+        public EventSeverity severity;
         protected int  eventNr;
         protected int dataLen;
 

@@ -17,7 +17,7 @@ namespace StatusConsole {
         IConOutput Screen;
         Task Receiver;
 
-        public void Initialize(IConfigurationSection cs) {
+        public void Initialize(IConfigurationSection cs, IConfiguration rootConfig) {
             Config = cs;
         }
 
