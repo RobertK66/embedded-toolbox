@@ -29,10 +29,24 @@ namespace StatusConsole {
         public List<EventConf> Events { get; set; } = new List<EventConf>();
     }
 
+
+    public class EnumValConf {
+        public int Val { get; set; }
+        public string Name { get; set; }
+        public string Short { get; set; }
+    }
+
+
+    public class EnumConf {
+        public string Name { get; set; }
+        public List<EnumValConf> Entries { get; set; } = new List<EnumValConf>();
+    }
+
     public class EventFactory {
       
 
         private Dictionary<int, ModConf> MyModules = new Dictionary<int, ModConf>();
+        private Dictionary<string, EnumConf> MyEnums = new Dictionary<string,EnumConf>();
 
         public EventFactory(IConfigurationSection debugConfig) {
             IConfigurationSection ms = debugConfig.GetSection("MODULES");
@@ -41,12 +55,23 @@ namespace StatusConsole {
             foreach (var m in mymods) {
                 MyModules.Add(m.Id, m);
             }
+
+            IConfigurationSection enums = debugConfig.GetSection("ENUMS");
+            var enumConfigs = enums.Get<List<EnumConf>>();
+
+            
+            foreach (var e in enumConfigs) {
+                MyEnums.Add(e.Name, e);
+            
+            }
+
         }
 
         public string GetAsString(byte moduleId, byte eventId, byte[] rxData, int len) {
             string retVal = "";
             rxData[1] &= 0x3F;  // mask the severity bits for hex strings.
             int dataIdx = 2;
+            int bitIdx = 0;
 
             if (MyModules.ContainsKey(moduleId)) {
                 var mod = MyModules[moduleId];
@@ -89,8 +114,42 @@ namespace StatusConsole {
                                 retVal += p.Short + ":" + BitConverter.ToString(rxData, dataIdx, cnt) + " ";
                                 dataIdx += cnt;
                             }
+                        } else if (p.Type.StartsWith("bit:")) {
+                            int result = 0x0000;
+                            int cnt;
+                            if (int.TryParse(p.Type.Substring(4), out cnt)) {
+                                if (cnt + bitIdx <= 8) {
+                                    int db = rxData[dataIdx];
+
+                                    int mask = 0x0080;
+                                    for (int i = 0; i <= 7; i++) {
+                                        if ((i >= bitIdx) && (i < bitIdx + cnt)) {
+                                            result |= db & mask;
+                                        }
+                                        mask >>= 1;
+                                    }
+                                    result >>= (8 - cnt);
+                                    bitIdx += cnt;
+                                    if (bitIdx >= 8) {
+                                        bitIdx = 0;
+                                        dataIdx++;
+                                    }
+                                } else {
+                                    // .... wenns über bytegrenzen geht .....
+                                }
+                                retVal += p.Short + ":" + result.ToString() + " ";
+                            }
+                        } else if (p.Type.Equals("byte")) {
+                            int val = rxData[dataIdx];
+                            if (p.Format.StartsWith("{")) {
+                                retVal += p.Short + ":" + ConvertToEnumTxt(p.Format.Substring(1, p.Format.IndexOf('}') - 1), val) + " ";
+                            } else {
+                                retVal += p.Short + ":" + val.ToString() + " ";
+                            }
+                            dataIdx++;
                         }
                     }
+
                 } else { 
                     retVal += "/" + BitConverter.ToString(rxData, 1, 1) + " ";
                 }
@@ -100,6 +159,19 @@ namespace StatusConsole {
             } else {
                 // No definition found. Convert to Hex
                 retVal += BitConverter.ToString(rxData, 0, 2) + " " + BitConverter.ToString(rxData, 2, len-2);
+            }
+            return retVal;
+        }
+
+        private string ConvertToEnumTxt(string enumName, int val) {
+            String retVal = enumName + "-" + val.ToString();
+            if (MyEnums.ContainsKey(enumName)) {
+                var ec = MyEnums[enumName];
+                
+                var entry = ec.Entries.Where(e=>e.Val == val).FirstOrDefault();
+                if (entry != null) {
+                    retVal = entry.Name;
+                }
             }
             return retVal;
         }
