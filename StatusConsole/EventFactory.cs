@@ -153,8 +153,10 @@ namespace StatusConsole {
                 } else { 
                     retVal += "/" + BitConverter.ToString(rxData, 1, 1) + " ";
                 }
-                // Rest of frame is written as Hex Dump.
-                retVal += " "+BitConverter.ToString(rxData, dataIdx, len - dataIdx);
+                if ((len - dataIdx) > 0) {
+                    // Rest of frame is written as Hex Dump.
+                    retVal += " " + BitConverter.ToString(rxData, dataIdx, len - dataIdx);
+                }
 
             } else {
                 // No definition found. Convert to Hex
