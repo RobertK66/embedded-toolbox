@@ -94,10 +94,14 @@ namespace StatusConsole {
                             double value = BitConverter.ToDouble(rxData.AsSpan(dataIdx, 8));
                             dataIdx += 8;
                             retVal += p.Short + ":" + value.ToString(p.Format) + " ";
+                        } else if (p.Type == "uint64") {
+                            UInt64 value = BitConverter.ToUInt64(rxData.AsSpan(dataIdx, 8));
+                            dataIdx += 8;
+                            retVal += p.Short + ":" + value.ToString() + " ";
                         } else if (p.Type == "uint32") {
                             UInt32 value = BitConverter.ToUInt32(rxData.AsSpan(dataIdx, 4));
                             dataIdx += 4;
-                            retVal += p.Short + ":" + value.ToString() + " ";
+                            retVal += ((String.IsNullOrWhiteSpace(p.Short))?"":(p.Short + ":")) + value.ToString(p.Format) + " ";
                         } else if (p.Type == "uint16") {
                             UInt16 value = BitConverter.ToUInt16(rxData.AsSpan(dataIdx, 2));
                             dataIdx += 2;
@@ -121,14 +125,14 @@ namespace StatusConsole {
                                 if (cnt + bitIdx <= 8) {
                                     int db = rxData[dataIdx];
 
-                                    int mask = 0x0080;
+                                    int mask = 0x0001;
                                     for (int i = 0; i <= 7; i++) {
                                         if ((i >= bitIdx) && (i < bitIdx + cnt)) {
                                             result |= db & mask;
                                         }
-                                        mask >>= 1;
+                                        mask <<= 1;
                                     }
-                                    result >>= (8 - cnt);
+                                    result >>= (bitIdx);
                                     bitIdx += cnt;
                                     if (bitIdx >= 8) {
                                         bitIdx = 0;
@@ -137,11 +141,25 @@ namespace StatusConsole {
                                 } else {
                                     // .... wenns über bytegrenzen geht .....
                                 }
-                                retVal += p.Short + ":" + result.ToString() + " ";
+                                if (cnt == 1) {
+                                    if (p.Short.Contains(":")) {
+                                        if (result==1) {
+                                            retVal += p.Short.Substring(0, p.Short.IndexOf(":"))  + " ";
+                                        } else {
+                                            retVal += p.Short.Substring(p.Short.IndexOf(":")+1) + " ";
+                                        }
+                                    } else {
+                                        retVal += ((result==1)?p.Short:".") + " ";
+                                    }
+                                } else {
+                                    if (p.Short.Length > 0) {
+                                        retVal += p.Short + ":" + result.ToString() + " ";
+                                    }
+                                }
                             }
                         } else if (p.Type.Equals("byte")) {
                             int val = rxData[dataIdx];
-                            if (p.Format.StartsWith("{")) {
+                            if (p.Format?.StartsWith("{")??false) {
                                 retVal += p.Short + ":" + ConvertToEnumTxt(p.Format.Substring(1, p.Format.IndexOf('}') - 1), val) + " ";
                             } else {
                                 retVal += p.Short + ":" + val.ToString() + " ";
