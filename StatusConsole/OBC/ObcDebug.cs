@@ -1,5 +1,4 @@
-﻿using ScreenLib;
-using System;
+﻿using System;
 using StatusConsole.OBC;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,11 +18,11 @@ namespace StatusConsole.OBC {
         L2Status Status = L2Status.IDLE;
         Byte[] rxData = new Byte[1000];
         int rxIdx = 0;
-        private IConOutput screen;
+        private IOutputWrapper screen;
         private EventFactory eventFactory;
 
 
-        public ObcDebug(IConfigurationSection debugConfig, IConOutput screen) {
+        public ObcDebug(IConfigurationSection debugConfig, IOutputWrapper screen) {
             this.screen = screen;
             eventFactory = new EventFactory(debugConfig);
         }

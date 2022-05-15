@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using ScreenLib;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
@@ -14,7 +13,7 @@ namespace StatusConsole {
         private IConfigurationSection Config;
         private SerialPort  Port;
         private bool Continue;
-        IConOutput Screen;
+        IOutputWrapper Screen;
         Task Receiver;
 
         OBC.ObcDebug debug;
@@ -93,7 +92,7 @@ namespace StatusConsole {
             return Continue;
         }
 
-        public void SetScreen(IConOutput scr) {
+        public void SetScreen(IOutputWrapper scr) {
             Screen = scr;
             debug = new OBC.ObcDebug(debugConfig, Screen);
         }

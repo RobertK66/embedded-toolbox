@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using ScreenLib;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
@@ -34,7 +33,7 @@ namespace StatusConsole {
         private String NewLine = String.Empty;
 
         // TODO: refactor to seperate UI Config ...???...
-        IConOutput Screen;
+        IOutputWrapper Screen;
         private IConfigurationSection screenConfig;
 
         public void Initialize(IConfigurationSection cs, IConfiguration rootConfig) {
@@ -55,7 +54,7 @@ namespace StatusConsole {
         }
 
         // TODO: refactor ....
-        public void SetScreen(IConOutput scr) {
+        public void SetScreen(IOutputWrapper scr) {
             Screen = scr;
         }
 

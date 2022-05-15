@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using ScreenLib;
 using StatusConsole.L3;
 using System;
 using System.Collections.Generic;
@@ -35,7 +34,7 @@ namespace StatusConsole {
         private String NewLine = String.Empty;
 
         // TODO: refactor to seperate UI Config ...???...
-        IConOutput Screen;
+        IOutputWrapper Screen;
         private IConfigurationSection screenConfig;
 
         private IL3Protocol Nextion = new NextionL3();
@@ -58,7 +57,7 @@ namespace StatusConsole {
         }
 
         // TODO: refactor ....
-        public void SetScreen(IConOutput scr) {
+        public void SetScreen(IOutputWrapper scr) {
             Screen = scr;
         }
 

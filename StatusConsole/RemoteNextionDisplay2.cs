@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using ScreenLib;
 using StatusConsole.L3;
 using System;
 using System.Collections.Generic;
@@ -18,7 +17,7 @@ namespace StatusConsole {
         private IConfigurationSection Config;
         private SerialPort Port;
         private bool Continue;
-        IConOutput Screen;
+        IOutputWrapper Screen;
         Task Receiver;
 
         private NextionL3 Nextion = new NextionL3();
@@ -105,7 +104,7 @@ namespace StatusConsole {
             return Continue;
         }
 
-        public void SetScreen(IConOutput scr) {
+        public void SetScreen(IOutputWrapper scr) {
             Screen = scr;
         }
 
