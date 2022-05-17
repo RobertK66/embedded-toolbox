@@ -36,7 +36,7 @@ namespace StatusConsole {
                            cl.AddDebug();          // This gives Logging in the Debug Console of VS. (configure in appsettings.json)
                        })
                        .ConfigureServices(services => {
-                           services = services.AddTransient<IConfigurableServices, MyServiceCollection>();
+                           services.AddTransient<IConfigurableServices, MyServiceCollection>();
                            services.AddHostedService<Program>();
                        });
 
@@ -47,13 +47,11 @@ namespace StatusConsole {
             return Environment.ExitCode;      
         }
 
-
         // Program Instance part
         private readonly ILogger<Program> Log;
         private readonly IConfigurableServices uartServices;
 
-
-        // GUI
+        // T(G)UI
         private IControl mainwin = null;
         private TabPanel tabPanel = new();
         //private static LogPanel myLogPanel = new();
@@ -61,7 +59,6 @@ namespace StatusConsole {
         private MyInputController? myInputLine = null;
         private int mainX = 0;
         private int mainY = 0;
-
 
         public static System.Drawing.Color FromColor(System.ConsoleColor c) {
             int cInt = (int)c;
@@ -73,7 +70,6 @@ namespace StatusConsole {
 
             return System.Drawing.Color.FromArgb(r, g, b);
         }
-
 
         public Program(IConfiguration conf, ILogger<Program> logger , IConfigurableServices services) {
             Log = logger;
