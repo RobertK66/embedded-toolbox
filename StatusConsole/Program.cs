@@ -15,6 +15,7 @@ using ConsoleGUI;
 using ConsoleGUI.Input;
 using ConsoleGUI.Data;
 using StatusConsole.Controls;
+using ConsoleGUI.Api;
 
 namespace StatusConsole {
 
@@ -152,6 +153,7 @@ namespace StatusConsole {
         public async Task StartAsync(CancellationToken cancellationToken) {
             Log.LogDebug("Program StartAsync called");
 
+            ConsoleManager.Console = new SimplifiedConsole();
             ConsoleManager.Setup();
             ConsoleManager.Resize(new Size(mainX, mainY+16));
             ConsoleManager.Content = mainwin;
