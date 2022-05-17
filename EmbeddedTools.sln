@@ -7,7 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScreenLib", "ScreenLib\Scre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StatusConsole", "StatusConsole\StatusConsole.csproj", "{D99E0D06-B412-49BF-98E2-6DE72C2366EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testtemp", "testtemp\testtemp.csproj", "{5EDCAF27-CA84-4BD6-B192-569CEE955363}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "testtemp", "testtemp\testtemp.csproj", "{5EDCAF27-CA84-4BD6-B192-569CEE955363}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0C372E88-9AA6-4D3C-A76F-ABFAF193AAD9}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
