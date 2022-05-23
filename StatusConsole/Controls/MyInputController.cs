@@ -8,45 +8,75 @@ using System.Threading.Tasks;
 
 namespace StatusConsole.Controls {
     public class MyInputController : IInputListener {
-        private const string Prefix = ">";
-        private List<string> lines = new List<string>();
-        private int curLine = -1;
-        private TextBox textBox;
-        private Action<string> callback;
+        
+        private List<List<string>> buffers = new List<List<string>>();
+        private List<int> curLines = new List<int>();
+        private List<TextBox> textBoxes = new List<TextBox>();
+        private List<string> Prefix = new List<string>();
+        private List<Action<string>> callbacks = new List<Action<string>>();
 
-        public MyInputController(TextBox textBox, Action<string> commandCallback) {
-            this.textBox = textBox;
-            this.textBox.Text = Prefix;
-            this.textBox.Caret = Prefix.Length;
-            callback = commandCallback;
+        private int currentActiveIdx = -1;
+        public MyInputController() {
+        }
+
+        public int AddCommandLine(TextBox textBox, Action<string> commandCallback, string prefix = ">") {
+            textBox.Text = prefix;
+            textBox.Caret = prefix.Length;
+
+            textBoxes.Add(textBox);
+            callbacks.Add(commandCallback);
+            Prefix.Add(prefix);
+            buffers.Add(new List<string>());
+            curLines.Add(-1);
+
+            currentActiveIdx = textBoxes.Count - 1;
+            return currentActiveIdx;     // return the index
+        }
+
+        public void SetActive(int activeIdx) {
+            if (activeIdx >= 0 && activeIdx < textBoxes.Count)
+                this.currentActiveIdx = activeIdx;
         }
 
         public void OnInput(InputEvent inputEvent) {
-			if (inputEvent.Key.Key == ConsoleKey.Enter) {
-                string cmdLine = this.textBox.Text.Substring(Prefix.Length);
-                lines.Add(cmdLine);
-                curLine = lines.Count - 1;
-                textBox.Text = Prefix;
-                callback(cmdLine);
-				inputEvent.Handled = true;
-			} else if (inputEvent.Key.Key == ConsoleKey.UpArrow) {
-                if (curLine >= 0) {
-                    textBox.Text = Prefix + lines[curLine--];
-                    if (curLine < 0) {
-                        curLine = 0;
-                    }
-                }
-                inputEvent.Handled = true;
-            } else if (inputEvent.Key.Key == ConsoleKey.DownArrow) {
-                if (curLine < lines.Count - 1) {
-                    textBox.Text = Prefix + lines[curLine++];
-                    if (curLine > lines.Count - 1) {
-                        curLine = lines.Count - 1;
-                    }
-                }
-                inputEvent.Handled = true;
-            }
+            if (currentActiveIdx >= 0 && currentActiveIdx < textBoxes.Count) {
+                TextBox tb = textBoxes[currentActiveIdx];
+                String pr = Prefix[currentActiveIdx];
+                List<string> lines = buffers[currentActiveIdx];
+                Action<string> callback = callbacks[currentActiveIdx];
 
+                if (inputEvent.Key.Key == ConsoleKey.Enter) {
+                    if (tb.Text.Length >= pr.Length) {
+                        string cmdLine = tb.Text.Substring(pr.Length);
+                        lines.Add(cmdLine);
+                        curLines[currentActiveIdx] = lines.Count - 1;
+                        callback(cmdLine);
+                    }
+                    inputEvent.Handled = true;
+                    tb.Text = pr;
+                    tb.Caret = pr.Length;
+                } else if (inputEvent.Key.Key == ConsoleKey.UpArrow) {
+                    if (curLines[currentActiveIdx] >= 0) {
+                        tb.Text = pr + lines[curLines[currentActiveIdx]--];
+                        if (curLines[currentActiveIdx] < 0) {
+                            curLines[currentActiveIdx] = 0;
+                        }
+                    }
+                    tb.Caret = tb.Text.Length;
+                    inputEvent.Handled = true;
+                } else if (inputEvent.Key.Key == ConsoleKey.DownArrow) {
+                    if (curLines[currentActiveIdx] < lines.Count - 1) {
+                        tb.Text = pr + lines[curLines[currentActiveIdx]++];
+                        if (curLines[currentActiveIdx] > lines.Count - 1) {
+                            curLines[currentActiveIdx] = lines.Count - 1;
+                        }
+                    }
+                    tb.Caret = tb.Text.Length;
+                    inputEvent.Handled = true;
+                } else {
+                    ((IInputListener)tb).OnInput(inputEvent);
+                }
+            }
 		}
     }
 

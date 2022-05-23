@@ -11,32 +11,47 @@ internal class TabPanel : SimpleControl, IInputListener {
 	private class Tab {
 		private readonly Background hederBackground;
 		private Color colInactive = new Color(65, 24, 25);
-		private Color	colActive = new Color(25, 54, 65);
+		private Color colActive = new Color(25, 54, 65);
+		private Color textCol = new Color(0, 0, 0);
 
 		public IControl Header { get; }
-		public IControl Content { get; }
+		public Background Content { get; }
 
-		public Tab(string name, IControl content, Color? colA = null, Color? colI = null) {
+		public Tab(string name, IControl content, Color? colA = null, Color? colI = null, Color? tC = null) {
 			colActive = colA ?? colActive;
 			colInactive = colI ?? colInactive;
+			textCol = tC ?? textCol;
+
 			hederBackground = new Background {
 				Content = new Margin {
 					Offset = new Offset(1, 0, 1, 0),
-					Content = new TextBlock { Text = name }
+					Content = new Style() { Content = new TextBlock { Text = name }, Foreground = textCol }
 				}
 			};
 
 			Header = new Margin {
-				Offset = new Offset(0, 0, 1, 0),
-				Content = hederBackground
+					Offset = new Offset(0, 0, 1, 0),
+					Content = hederBackground
+				};
+			Content = new Background {
+				Content = new Style() {
+					Content = content,
+					Foreground = textCol
+				}, Color = colActive
 			};
-			Content = content;
-
+									
 			MarkAsInactive();
 		}
 
-		public void MarkAsActive() => hederBackground.Color = colActive;
-		public void MarkAsInactive() => hederBackground.Color = colInactive;
+		public void MarkAsActive() { 
+			hederBackground.Color = colActive;
+			Content.Color = colActive;
+		}
+		public void MarkAsInactive() {
+			hederBackground.Color = colInactive;
+			//Content.Color = colInactive;
+
+		} 
 	}
 
 	private readonly List<Tab> tabs = new List<Tab>();
@@ -45,13 +60,15 @@ internal class TabPanel : SimpleControl, IInputListener {
 
 	private Tab? currentTab;
 
-	public TabPanel() {
-		tabsPanel = new HorizontalStackPanel();
+	public event EventHandler<TabSwitchedArgs> TabSwitched;
 
+	public TabPanel(Color? unselectedCol = null) {
+		tabsPanel = new HorizontalStackPanel();
+		
 		wrapper = new DockPanel {
 			Placement = DockPanel.DockedControlPlacement.Top,
 			DockedControl = new Background {
-				Color = new Color(25, 25, 52),
+				Color = unselectedCol ?? new Color(25, 25, 52),
 				Content = new Boundary {
 					MinHeight = 1,
 					MaxHeight = 1,
@@ -63,8 +80,8 @@ internal class TabPanel : SimpleControl, IInputListener {
 		Content = wrapper;
 	}
 
-	public void AddTab(string name, IControl content, Color? headerCol = null) {
-		var newTab = new Tab(name, content, headerCol);
+	public void AddTab(string name, IControl content, Color? headerCol = null, Color? headerColInactive = null, Color? textCol = null ) {
+		var newTab = new Tab(name, content, headerCol, headerColInactive, textCol);
 		tabs.Add(newTab);
 		tabsPanel.Add(newTab.Header);
 		if (tabs.Count == 1)
@@ -76,6 +93,7 @@ internal class TabPanel : SimpleControl, IInputListener {
 		currentTab = tabs[tab];
 		currentTab.MarkAsActive();
 		wrapper.FillingControl = currentTab.Content;
+		TabSwitched?.Invoke(this, new TabSwitchedArgs(tab));
 	}
 
 	public void OnInput(InputEvent inputEvent) {
@@ -88,3 +106,10 @@ internal class TabPanel : SimpleControl, IInputListener {
 	}
 }
 
+public class TabSwitchedArgs {
+	public int selectedIdx;
+
+    public TabSwitchedArgs(int tab) {
+		selectedIdx = tab;
+    }
+}

@@ -55,21 +55,30 @@ namespace StatusConsole {
         // T(G)UI
         private IControl mainwin = null;
         private TabPanel tabPanel = new();
-        //private static LogPanel myLogPanel = new();
-        private TextBox myInputBox = new TextBox();
-        private MyInputController? myInputLine = null;
+        private MyInputController? myInputController = null;
         private int mainX = 0;
         private int mainY = 0;
 
-        public static System.Drawing.Color FromColor(System.ConsoleColor c) {
-            int cInt = (int)c;
+        //public static System.Drawing.Color FromColor(System.ConsoleColor c) {
+        //    int cInt = (int)c;
 
-            int brightnessCoefficient = ((cInt & 8) > 0) ? 2 : 1;
-            int r = ((cInt & 4) > 0) ? 64 * brightnessCoefficient : 0;
-            int g = ((cInt & 2) > 0) ? 64 * brightnessCoefficient : 0;
-            int b = ((cInt & 1) > 0) ? 64 * brightnessCoefficient : 0;
+        //    int brightnessCoefficient = ((cInt & 8) > 0) ? 2 : 1;
+        //    int r = ((cInt & 4) > 0) ? 64 * brightnessCoefficient : 0;
+        //    int g = ((cInt & 2) > 0) ? 64 * brightnessCoefficient : 0;
+        //    int b = ((cInt & 1) > 0) ? 64 * brightnessCoefficient : 0;
 
-            return System.Drawing.Color.FromArgb(r, g, b);
+        //    return System.Drawing.Color.FromArgb(r, g, b);
+        //}
+
+        public Color GetGuiColor(ConsoleColor color) {
+            if (color == ConsoleColor.DarkGray) return new Color(128, 128, 128);
+            if (color == ConsoleColor.Gray) return new Color(192, 192, 192);
+            int index = (int)color;
+            byte d = ((index & 8) != 0) ? (byte)255 : (byte)128;
+            return new Color(
+                ((index & 4) != 0) ? d : (byte)0,
+                ((index & 2) != 0) ? d : (byte)0,
+                ((index & 1) != 0) ? d : (byte)0);
         }
 
         public Program(IConfiguration conf, ILogger<Program> logger , IConfigurableServices services) {
@@ -77,8 +86,8 @@ namespace StatusConsole {
             Log.LogDebug("Program() Constructor called.");
 
             uartServices = services;
-
-            myInputLine = new MyInputController(myInputBox, CommandCallback);
+            myInputController = new MyInputController();
+      
             LogPanel myLogPanel = new();
             bool tabAvailable = false;
             foreach (var uartService in services) {
@@ -99,38 +108,39 @@ namespace StatusConsole {
                 }
                 
                 ConsoleColor cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue("Background", "Black"));
-                System.Drawing.Color sc = FromColor(cc);
-                Color c = new Color(sc.R, sc.G, sc.B);
+                Color backgroundColor = GetGuiColor(cc);
+                cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue("Text", "Whilte"));
+                Color textColor = GetGuiColor(cc);
 
                 var uartScreen = new MyUartScreen();
+                TextBox textBox = new TextBox();
                 uartService.SetScreen(uartScreen);
 
                 tabPanel.AddTab(name, new Boundary {
                     Width = width,
                     MinHeight = heigth,
                     Content = new Background {
-                        Color = c,
-                        Content = uartScreen
+                        Color = backgroundColor,
+                        Content = new DockPanel {
+                            Placement = DockPanel.DockedControlPlacement.Bottom,
+                            DockedControl = new Boundary {
+                                MaxHeight = 1,
+                                MinHeight = 1,
+                                Content = textBox
+                            },
+                            FillingControl = uartScreen
+                        }
                     }
-                }, c);
+                }, backgroundColor, new Color(128, 128, 128), textColor);
                 tabAvailable = true;
+                myInputController.AddCommandLine(textBox, CommandCallback);
                 Log.LogDebug($"Screen with {width}x{heigth} added -> {mainX}x{mainY}");
             }
 
             if (tabAvailable) {
+                tabPanel.TabSwitched += TabPanel_TabSwitched;
                 tabPanel.SelectTab(0);
             }
-
-            var tabInput = new DockPanel {
-                    Placement = DockPanel.DockedControlPlacement.Bottom,
-                    DockedControl = new Boundary {
-                        MaxHeight = 1,
-                        MinHeight = 1,
-                        Content = myInputBox
-                    },
-                    FillingControl = tabPanel
-                };
-
 
             mainwin = new DockPanel {
                 Placement = DockPanel.DockedControlPlacement.Bottom,
@@ -139,12 +149,15 @@ namespace StatusConsole {
                     MinHeight = 10,
                     Content = myLogPanel
                 },
-                FillingControl = tabInput
+                FillingControl = tabPanel
             };
 
+        }
 
-
-
+        private void TabPanel_TabSwitched(object sender, TabSwitchedArgs e) {
+            myInputController.SetActive(e.selectedIdx);
+            uartServices.SwitchCurrentService(e.selectedIdx);
+            
         }
 
         private Thread? tuiThread;
@@ -154,15 +167,15 @@ namespace StatusConsole {
             Log.LogDebug("Program StartAsync called");
 
             ConsoleManager.Console = new SimplifiedConsole();
+            
             ConsoleManager.Setup();
             ConsoleManager.Resize(new Size(mainX, mainY+16));
             ConsoleManager.Content = mainwin;
 
             input = new IInputListener[] {
                 tabPanel,
-                myInputLine,
-                myInputBox
-            };
+                myInputController,
+              };
 
             tuiThread = new Thread(new ThreadStart(TuiThread));
             tuiThread.Start();

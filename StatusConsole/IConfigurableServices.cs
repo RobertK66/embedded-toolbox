@@ -11,5 +11,7 @@ namespace StatusConsole {
         Dictionary<string, ITtyService> GetTtyServices();
         ITtyService GetCurrentService();
         ITtyService GetNextService();
+
+        void SwitchCurrentService(int idx);
     }
 }

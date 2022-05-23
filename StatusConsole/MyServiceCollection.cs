@@ -61,6 +61,12 @@ namespace StatusConsole {
             return currentService;
         }
 
+        public void SwitchCurrentService(int idx) {
+            if (idx >= 0 && idx < keys.Count) {
+                currentService = ttyServices[keys[idx]];
+            }
+        }
+
       
         IEnumerator<ITtyService> IEnumerable<ITtyService>.GetEnumerator() {
             return ttyServices.Values.GetEnumerator();
