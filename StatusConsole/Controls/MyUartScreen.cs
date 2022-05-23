@@ -10,6 +10,9 @@ namespace StatusConsole.Controls {
 
         String Line = "";
 
+        public MyUartScreen(object monitorObject) : base(monitorObject) {
+        }
+
         public void Write(string v) {
             if (v.Contains("\r")) {
                 Line += v.Substring(0, v.IndexOf("\r"));

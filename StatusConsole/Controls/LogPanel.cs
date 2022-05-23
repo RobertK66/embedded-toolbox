@@ -9,8 +9,9 @@ using System.Threading;
 public class LogPanel : SimpleControl, IInputListener {
 	private readonly VerticalStackPanel _stackPanel;
 	private readonly VerticalScrollPanel _scrollPanel;
+	private readonly Object monitorObject;
 
-	public LogPanel()  {
+	public LogPanel(Object monitor)  {
 		_stackPanel = new VerticalStackPanel();
 		_scrollPanel = new VerticalScrollPanel() {
 			Content = _stackPanel,
@@ -18,11 +19,12 @@ public class LogPanel : SimpleControl, IInputListener {
 
 		};
 		Content = _scrollPanel;
+		monitorObject = monitor;
 	}
 
 
 	public void Add(string message) {
-		Monitor.Enter(this);				// This has to be Thread Save! its used by all Logger instances! --> ??? for serioal also!?
+		Monitor.Enter(monitorObject);				// This has to be Thread Save! its used by all Logger instances! --> ??? for serial also!?
 		_stackPanel.Add( new WrapPanel {
 			Content = 
 			new HorizontalStackPanel {
@@ -34,17 +36,17 @@ public class LogPanel : SimpleControl, IInputListener {
 			}
 		});
 		_scrollPanel.Top = _stackPanel.Children.Sum(x => x.Size.Height) - this.Size.Height;
-		Monitor.Exit(this);
+		Monitor.Exit(monitorObject);
 	}
 
 	public void Clear() {
-		Monitor.Enter(this);                // This has to be Thread Save! its used by all Logger instances! --> ??? for serioal also!?
+		Monitor.Enter(monitorObject);                // This has to be Thread Save! its used by all Logger instances! --> ??? for serioal also!?
 		var c = _stackPanel.Children.ToList();
 		foreach (var item in c) {
 			_stackPanel.Remove(item);
 		}
 		_scrollPanel.Top = _stackPanel.Children.Sum(x => x.Size.Height) - this.Size.Height;
-		Monitor.Exit(this);
+		Monitor.Exit(monitorObject);
 	}
 
 	public void OnInput(InputEvent inputEvent) {

@@ -16,6 +16,8 @@ using ConsoleGUI.Input;
 using ConsoleGUI.Data;
 using StatusConsole.Controls;
 using ConsoleGUI.Api;
+using StatusConsole.Logger;
+
 
 namespace StatusConsole {
 
@@ -32,9 +34,11 @@ namespace StatusConsole {
                            cb.AddCommandLine(args, mappings);
                        })
                        .ConfigureLogging((cl) => {
-                           cl.ClearProviders();    // This avoids logging output to console.
-                                                   // TODO: add log stream to own screen later.....
-                           cl.AddDebug();          // This gives Logging in the Debug Console of VS. (configure in appsettings.json)
+                           cl.ClearProviders();             // This avoids default logging output to console.
+                           cl.AddConGuiLogger((con) => {    // This adds our LogPanel as possible target (configure in appsettings.json)
+                               con.LogPanel = myLogPanel;
+                           });                        
+                           cl.AddDebug();                   // This gives Logging in the Debug Console of VS. (configure in appsettings.json)
                        })
                        .ConfigureServices(services => {
                            services.AddTransient<IConfigurableServices, MyServiceCollection>();
@@ -42,34 +46,24 @@ namespace StatusConsole {
                        });
 
             await host.RunConsoleAsync();
-
-            // This lines are not reached if Environment.Exit() is used somewhere in Services.....
-            Console.WriteLine("Exit Code in Main[]:" + Environment.ExitCode);
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
             return Environment.ExitCode;      
         }
 
         // Program Instance part
-        private readonly ILogger<Program> Log;
+        private ILogger<Program> Log;
         private readonly IConfigurableServices uartServices;
 
         // T(G)UI
+        private static String myLock = "55";
+        private static LogPanel myLogPanel = new(myLock);
         private IControl mainwin = null;
         private TabPanel tabPanel = new();
         private MyInputController? myInputController = null;
         private MyFunctionController? myFunctionController = null;
         private int mainX = 0;
         private int mainY = 0;
-
-        public Color GetGuiColor(ConsoleColor color) {
-            if (color == ConsoleColor.DarkGray) return new Color(128, 128, 128);
-            if (color == ConsoleColor.Gray) return new Color(192, 192, 192);
-            int index = (int)color;
-            byte d = ((index & 8) != 0) ? (byte)255 : (byte)128;
-            return new Color(
-                ((index & 4) != 0) ? d : (byte)0,
-                ((index & 2) != 0) ? d : (byte)0,
-                ((index & 1) != 0) ? d : (byte)0);
-        }
 
         public Program(IConfiguration conf, ILogger<Program> logger , IConfigurableServices services) {
             Log = logger;
@@ -79,7 +73,7 @@ namespace StatusConsole {
             myInputController = new MyInputController();
             myFunctionController = new MyFunctionController(services);
       
-            LogPanel myLogPanel = new();
+           
             bool tabAvailable = false;
             foreach (var uartService in services) {
                 
@@ -97,11 +91,11 @@ namespace StatusConsole {
                 }
                 
                 ConsoleColor cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue("Background", "Black"));
-                Color backgroundColor = GetGuiColor(cc);
+                Color backgroundColor = cc.GetGuiColor();
                 cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue("Text", "Whilte"));
-                Color textColor = GetGuiColor(cc);
+                Color textColor = cc.GetGuiColor();
 
-                var uartScreen = new MyUartScreen();
+                var uartScreen = new MyUartScreen(myLock);
                 TextBox textBox = new TextBox();
                 uartService.SetScreen(uartScreen);
 
@@ -113,9 +107,9 @@ namespace StatusConsole {
                         Content = new DockPanel {
                             Placement = DockPanel.DockedControlPlacement.Bottom,
                             DockedControl = new Boundary {
-                                MaxHeight = 1,
-                                MinHeight = 1,
-                                Content = textBox
+                                MaxHeight = 3,
+                                MinHeight = 3,
+                                Content = new Border() { Content = textBox, BorderStyle = BorderStyle.Single }
                             },
                             FillingControl = uartScreen
                         }
@@ -157,7 +151,6 @@ namespace StatusConsole {
             Log.LogDebug("Program StartAsync called");
 
             ConsoleManager.Console = new SimplifiedConsole();
-            
             ConsoleManager.Setup();
             ConsoleManager.Resize(new Size(mainX, mainY+16));
             ConsoleManager.Content = mainwin;
@@ -176,9 +169,12 @@ namespace StatusConsole {
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken) {
+        public async Task StopAsync(CancellationToken cancellationToken) {
             Log.LogDebug("Program StopAsync called");
-            return Task.CompletedTask;
+            // Stop all UART Coms
+            await uartServices.ForEachAsync(uart => uart.StopAsync(cancellationToken));
+            // Clear all content and switch color of Console for usage after this Program ....
+            ConsoleManager.Content = new Style() { Background = Color.Black, Foreground = Color.White };
         }
 
         private void TuiThread() {
