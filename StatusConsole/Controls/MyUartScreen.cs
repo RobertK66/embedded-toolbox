@@ -36,5 +36,6 @@ namespace StatusConsole.Controls {
         public void WriteLine(string v, ConsoleColor red) {
             Add(v);
         }
+
     }
 }

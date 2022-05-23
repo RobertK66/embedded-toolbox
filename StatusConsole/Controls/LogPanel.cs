@@ -37,7 +37,17 @@ public class LogPanel : SimpleControl, IInputListener {
 		Monitor.Exit(this);
 	}
 
-    public void OnInput(InputEvent inputEvent) {
+	public void Clear() {
+		Monitor.Enter(this);                // This has to be Thread Save! its used by all Logger instances! --> ??? for serioal also!?
+		var c = _stackPanel.Children.ToList();
+		foreach (var item in c) {
+			_stackPanel.Remove(item);
+		}
+		_scrollPanel.Top = _stackPanel.Children.Sum(x => x.Size.Height) - this.Size.Height;
+		Monitor.Exit(this);
+	}
+
+	public void OnInput(InputEvent inputEvent) {
 		if (inputEvent.Key.Key == ConsoleKey.DownArrow) {
 			_scrollPanel.Top += 1;
 		} else if (inputEvent.Key.Key == ConsoleKey.UpArrow) {

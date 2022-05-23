@@ -60,12 +60,16 @@ namespace StatusConsole {
             while(Continue) {
                 try {
                     char ch = (char)Port.ReadChar();
-                    if(ch.ToString().Equals(Port.NewLine)) {
+                    if (ch.ToString().Equals(Port.NewLine)) {
                         Screen.WriteLine("");
                     } else {
                         Screen.Write(ch.ToString());
                     }
-                } catch(TimeoutException) { }
+                } catch (TimeoutException) {
+                } catch (Exception ex) {
+                    Screen.WriteLine("Exception im reader: " + ex.Message);
+                    Continue = false;
+;                }
             }
         }
 
@@ -81,7 +85,11 @@ namespace StatusConsole {
 
         void ITtyService.SendUart(string line) {
             if(Continue) {
-                Port?.WriteLine(line);
+                try {
+                    Port?.WriteLine(line);
+                } catch (Exception ex) {
+                    Screen.WriteLine("Fehler: " + ex.Message);
+                }
             }
         }
 

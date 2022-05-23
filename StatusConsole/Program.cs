@@ -56,19 +56,9 @@ namespace StatusConsole {
         private IControl mainwin = null;
         private TabPanel tabPanel = new();
         private MyInputController? myInputController = null;
+        private MyFunctionController? myFunctionController = null;
         private int mainX = 0;
         private int mainY = 0;
-
-        //public static System.Drawing.Color FromColor(System.ConsoleColor c) {
-        //    int cInt = (int)c;
-
-        //    int brightnessCoefficient = ((cInt & 8) > 0) ? 2 : 1;
-        //    int r = ((cInt & 4) > 0) ? 64 * brightnessCoefficient : 0;
-        //    int g = ((cInt & 2) > 0) ? 64 * brightnessCoefficient : 0;
-        //    int b = ((cInt & 1) > 0) ? 64 * brightnessCoefficient : 0;
-
-        //    return System.Drawing.Color.FromArgb(r, g, b);
-        //}
 
         public Color GetGuiColor(ConsoleColor color) {
             if (color == ConsoleColor.DarkGray) return new Color(128, 128, 128);
@@ -87,6 +77,7 @@ namespace StatusConsole {
 
             uartServices = services;
             myInputController = new MyInputController();
+            myFunctionController = new MyFunctionController(services);
       
             LogPanel myLogPanel = new();
             bool tabAvailable = false;
@@ -97,8 +88,6 @@ namespace StatusConsole {
                 
                 int width = cs.GetValue("Width", 80);
                 int heigth = cs.GetValue("Height", 10);
-                //int posX = cs.GetValue("Pos_X", 0);
-                //int posY = cs.GetValue("Pos_Y", 0);
                 if (width > mainX) {
                     mainX = width;
                     
@@ -134,6 +123,7 @@ namespace StatusConsole {
                 }, backgroundColor, new Color(128, 128, 128), textColor);
                 tabAvailable = true;
                 myInputController.AddCommandLine(textBox, CommandCallback);
+                myFunctionController.AddUartScreen(name, uartScreen);
                 Log.LogDebug($"Screen with {width}x{heigth} added -> {mainX}x{mainY}");
             }
 
@@ -175,6 +165,7 @@ namespace StatusConsole {
             input = new IInputListener[] {
                 tabPanel,
                 myInputController,
+                myFunctionController
               };
 
             tuiThread = new Thread(new ThreadStart(TuiThread));

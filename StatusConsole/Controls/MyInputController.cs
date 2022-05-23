@@ -74,6 +74,7 @@ namespace StatusConsole.Controls {
                     tb.Caret = tb.Text.Length;
                     inputEvent.Handled = true;
                 } else {
+                    // pass all other events to the current active text box. It handles rest of line edit.
                     ((IInputListener)tb).OnInput(inputEvent);
                 }
             }
