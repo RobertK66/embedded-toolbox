@@ -49,6 +49,7 @@ namespace StatusConsole {
                        });
 
             await host.RunConsoleAsync();
+            // Switch back colors to leave a usable Console/Cmd window
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
             return Environment.ExitCode;      
@@ -59,7 +60,7 @@ namespace StatusConsole {
         private readonly IConfigurableServices uartServices;
 
         // T(G)UI
-        private List<IInputListener> input = new List<IInputListener>();
+        private List<IInputListener> inputListeners = new List<IInputListener>();
         private static String myLock = "55";
         private static LogPanel myLogPanel = new(myLock, ConsoleColor.Blue.GetGuiColor());
         private IControl mainwin = null;
@@ -109,7 +110,7 @@ namespace StatusConsole {
 
 
                 var uartScreen = new MyUartScreen(myLock, backgroundColor, textColor, timeColor);
-                input.Add(uartScreen);
+                inputListeners.Add(uartScreen);
                 TextBox textBox = new TextBox();
                 uartService.SetScreen(uartScreen);
 
@@ -133,7 +134,7 @@ namespace StatusConsole {
                 tabAvailable = true;
                 myInputController.AddCommandLine(textBox, CommandCallback);
                 myFunctionController.AddUartScreen(name, uartScreen);
-                _Log.LogDebug($"Screen with {width}x{heigth} added -> {mainX}x{mainY}");
+                _Log.LogTrace($"Screen with {width}x{heigth} added -> {mainX}x{mainY}");
             }
 
             if (tabAvailable) {
@@ -150,6 +151,7 @@ namespace StatusConsole {
                 },
                 FillingControl = tabPanel
             };
+
 
         }
 
@@ -170,14 +172,10 @@ namespace StatusConsole {
             ConsoleManager.Resize(new Size(mainX, mainY+16));
             ConsoleManager.Content = mainwin;
 
-            //input = new IInputListener[] {
-            //    tabPanel,
-            //    myInputController,
-            //    myFunctionController
-            //  };
-            input.Insert(0, tabPanel);
-            input.Insert(1, myInputController);
-            input.Insert(2, myFunctionController);
+         
+            inputListeners.Insert(0, tabPanel);
+            inputListeners.Insert(1, myInputController);
+            inputListeners.Insert(2, myFunctionController);
 
             tuiThread = new Thread(new ThreadStart(TuiThread));
             tuiThread.Start();
@@ -197,9 +195,9 @@ namespace StatusConsole {
 
         private void TuiThread() {
             try {
-                _Log.LogDebug("TUI Thread started");
+                _Log.LogDebug(new EventId(1, "TUI"), "TUI Thread started");
                 while (true) {
-                    ConsoleManager.ReadInput(input);
+                    ConsoleManager.ReadInput(inputListeners);
                     Thread.Sleep(20);
                 }
             } catch (ThreadInterruptedException) {

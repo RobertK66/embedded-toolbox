@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using ConsoleGUI.Data;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,14 @@ namespace StatusConsole.Logger {
     public class ConGuiLogger :ILogger {
         private readonly string _name;
         private readonly Func<ConGuiLoggerConfiguration> _getCurrentConfig;
+        private Dictionary<LogLevel, ConsoleColor> _colors = new Dictionary<LogLevel, ConsoleColor>() { 
+            {LogLevel.Trace, ConsoleColor.Gray },
+            {LogLevel.Debug, ConsoleColor.White },
+            {LogLevel.Information, ConsoleColor.Blue },
+            {LogLevel.Warning, ConsoleColor.Yellow },
+            {LogLevel.Critical, ConsoleColor.Red },
+            {LogLevel.Error, ConsoleColor.Red },
+        };
 
         public ConGuiLogger(
             string name,
@@ -44,7 +53,7 @@ namespace StatusConsole.Logger {
             //}    
 
             //if (configured <= logLevel) { 
-                config.LogPanel?.Add($"[{eventId.Id,2}: {logLevel,-12}] {_name} - {formatter(state, exception)}");
+                config.LogPanel?.Add($"[{logLevel,-12}] {_name} - {formatter(state, exception)}", _colors.GetValueOrDefault(logLevel));
             //}
         }
     }
