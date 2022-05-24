@@ -17,13 +17,14 @@ using ConsoleGUI.Data;
 using StatusConsole.Controls;
 using ConsoleGUI.Api;
 using StatusConsole.Logger;
-
+using Serilog;
 
 namespace StatusConsole {
 
     public class Program : IHostedService
     {
-        public async static Task<int> Main(string[] args) { 
+        public async static Task<int> Main(string[] args) {
+          
             var host =  Host.CreateDefaultBuilder()
                        .ConfigureAppConfiguration((hbc, cb) => {
                            // Commandline pars with "--<anyname> <value>" automatically appear as "anyname" pars in the flattened config.
@@ -33,12 +34,14 @@ namespace StatusConsole {
                                 { "-mypar", "mypar" } };
                            cb.AddCommandLine(args, mappings);
                        })
-                       .ConfigureLogging((cl) => {
+                       .ConfigureLogging((hostContext, cl) => {
                            cl.ClearProviders();             // This avoids default logging output to console.
                            cl.AddConGuiLogger((con) => {    // This adds our LogPanel as possible target (configure in appsettings.json)
                                con.LogPanel = myLogPanel;
-                           });                        
+                           });
                            cl.AddDebug();                   // This gives Logging in the Debug Console of VS. (configure in appsettings.json)
+                                                            // This giving possible file logger implementation (serilog). Note Debug and ConGui works without serilog dependency!
+                           cl.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(hostContext.Configuration).CreateLogger());
                        })
                        .ConfigureServices(services => {
                            services.AddTransient<IConfigurableServices, MyServiceCollection>();
@@ -52,7 +55,7 @@ namespace StatusConsole {
         }
 
         // Program Instance part
-        private ILogger<Program> Log;
+        private ILogger<Program> _Log;
         private readonly IConfigurableServices uartServices;
 
         // T(G)UI
@@ -68,8 +71,8 @@ namespace StatusConsole {
 
 
         public Program(IConfiguration conf, ILogger<Program> logger , IConfigurableServices services) {
-            Log = logger;
-            Log.LogDebug("Program() Constructor called.");
+            _Log = logger;
+            _Log.LogDebug("Program() Constructor called.");
 
             uartServices = services;
             myInputController = new MyInputController();
@@ -130,7 +133,7 @@ namespace StatusConsole {
                 tabAvailable = true;
                 myInputController.AddCommandLine(textBox, CommandCallback);
                 myFunctionController.AddUartScreen(name, uartScreen);
-                Log.LogDebug($"Screen with {width}x{heigth} added -> {mainX}x{mainY}");
+                _Log.LogDebug($"Screen with {width}x{heigth} added -> {mainX}x{mainY}");
             }
 
             if (tabAvailable) {
@@ -160,7 +163,7 @@ namespace StatusConsole {
      
 
         public async Task StartAsync(CancellationToken cancellationToken) {
-            Log.LogDebug("Program StartAsync called");
+            _Log.LogDebug("Program StartAsync called");
 
             ConsoleManager.Console = new SimplifiedConsole();
             ConsoleManager.Setup();
@@ -185,7 +188,7 @@ namespace StatusConsole {
         }
 
         public async Task StopAsync(CancellationToken cancellationToken) {
-            Log.LogDebug("Program StopAsync called");
+            _Log.LogDebug("Program StopAsync called");
             // Stop all UART Coms
             await uartServices.ForEachAsync(uart => uart.StopAsync(cancellationToken));
             // Clear all content and switch color of Console for usage after this Program ....
@@ -194,18 +197,18 @@ namespace StatusConsole {
 
         private void TuiThread() {
             try {
-                Log.LogDebug("TUI Thread started");
+                _Log.LogDebug("TUI Thread started");
                 while (true) {
                     ConsoleManager.ReadInput(input);
                     Thread.Sleep(20);
                 }
             } catch (ThreadInterruptedException) {
-                Log.LogDebug("TUI Thread canceled by InterruptException");
+                _Log.LogDebug("TUI Thread canceled by InterruptException");
             }
         }
 
         private void CommandCallback(string command) {
-            Log.LogDebug("Command " + command);
+            _Log.LogDebug("Command " + command);
             var s = uartServices.GetCurrentService();
             s.SendUart(command);
         }
