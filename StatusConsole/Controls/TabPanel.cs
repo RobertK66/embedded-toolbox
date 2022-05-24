@@ -34,10 +34,11 @@ internal class TabPanel : SimpleControl, IInputListener {
 					Content = hederBackground
 				};
 			Content = new Background {
-				Content = new Style() {
+				//Content = new Style() {
 					Content = content,
-					Foreground = textCol
-				}, Color = colActive
+//					Foreground = textCol
+				//}, 
+			    Color = colActive
 			};
 									
 			MarkAsInactive();
@@ -45,7 +46,7 @@ internal class TabPanel : SimpleControl, IInputListener {
 
 		public void MarkAsActive() { 
 			hederBackground.Color = colActive;
-			Content.Color = colActive;
+			//Content.Color = colActive;
 		}
 		public void MarkAsInactive() {
 			hederBackground.Color = colInactive;

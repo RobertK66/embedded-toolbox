@@ -56,14 +56,16 @@ namespace StatusConsole {
         private readonly IConfigurableServices uartServices;
 
         // T(G)UI
+        private List<IInputListener> input = new List<IInputListener>();
         private static String myLock = "55";
-        private static LogPanel myLogPanel = new(myLock);
+        private static LogPanel myLogPanel = new(myLock, ConsoleColor.Blue.GetGuiColor());
         private IControl mainwin = null;
         private TabPanel tabPanel = new();
         private MyInputController? myInputController = null;
         private MyFunctionController? myFunctionController = null;
         private int mainX = 0;
         private int mainY = 0;
+
 
         public Program(IConfiguration conf, ILogger<Program> logger , IConfigurableServices services) {
             Log = logger;
@@ -95,7 +97,16 @@ namespace StatusConsole {
                 cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue("Text", "Whilte"));
                 Color textColor = cc.GetGuiColor();
 
-                var uartScreen = new MyUartScreen(myLock);
+                string time = cs.GetValue("Time", "None");
+                Color? timeColor = null;
+                if (time != "None") {
+                    cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), time);
+                    timeColor = cc.GetGuiColor();
+                }
+
+
+                var uartScreen = new MyUartScreen(myLock, backgroundColor, textColor, timeColor);
+                input.Add(uartScreen);
                 TextBox textBox = new TextBox();
                 uartService.SetScreen(uartScreen);
 
@@ -104,12 +115,13 @@ namespace StatusConsole {
                     MinHeight = heigth,
                     Content = new Background {
                         Color = backgroundColor,
+                                                
                         Content = new DockPanel {
                             Placement = DockPanel.DockedControlPlacement.Bottom,
                             DockedControl = new Boundary {
                                 MaxHeight = 3,
                                 MinHeight = 3,
-                                Content = new Border() { Content = textBox, BorderStyle = BorderStyle.Single }
+                                Content = new ForceForeground(textColor) { Content = new Border() { Content = textBox, BorderStyle = BorderStyle.Single } }
                             },
                             FillingControl = uartScreen
                         }
@@ -145,7 +157,7 @@ namespace StatusConsole {
         }
 
         private Thread? tuiThread;
-        private IInputListener[]? input;
+     
 
         public async Task StartAsync(CancellationToken cancellationToken) {
             Log.LogDebug("Program StartAsync called");
@@ -155,11 +167,14 @@ namespace StatusConsole {
             ConsoleManager.Resize(new Size(mainX, mainY+16));
             ConsoleManager.Content = mainwin;
 
-            input = new IInputListener[] {
-                tabPanel,
-                myInputController,
-                myFunctionController
-              };
+            //input = new IInputListener[] {
+            //    tabPanel,
+            //    myInputController,
+            //    myFunctionController
+            //  };
+            input.Insert(0, tabPanel);
+            input.Insert(1, myInputController);
+            input.Insert(2, myFunctionController);
 
             tuiThread = new Thread(new ThreadStart(TuiThread));
             tuiThread.Start();

@@ -1,17 +1,22 @@
 ﻿using ConsoleGUI.Controls;
+using StatusConsole;
 using ConsoleGUI.Data;
 using ConsoleGUI.Input;
 using ConsoleGUI.UserDefined;
 using System;
 using System.Linq;
 using System.Threading;
+using ConsoleGUI;
+using StatusConsole.Controls;
+using System.Collections.Generic;
 
 public class LogPanel : SimpleControl, IInputListener {
 	private readonly VerticalStackPanel _stackPanel;
 	private readonly VerticalScrollPanel _scrollPanel;
 	private readonly Object monitorObject;
+    private Color? timeColor = ConsoleColor.Blue.GetGuiColor();
 
-	public LogPanel(Object monitor)  {
+	public LogPanel(Object monitor, Color? timeCol = null)  {
 		_stackPanel = new VerticalStackPanel();
 		_scrollPanel = new VerticalScrollPanel() {
 			Content = _stackPanel,
@@ -20,19 +25,22 @@ public class LogPanel : SimpleControl, IInputListener {
 		};
 		Content = _scrollPanel;
 		monitorObject = monitor;
+		this.timeColor = timeCol;
 	}
 
 
-	public void Add(string message) {
-		Monitor.Enter(monitorObject);				// This has to be Thread Save! its used by all Logger instances! --> ??? for serial also!?
+	public void Add(string message, Color? textColor = null) {
+		Monitor.Enter(monitorObject);               // This has to be Thread Save! its used by all Logger instances! --> ??? for serial also!?
+		List<IControl> childs = new List<IControl>();
+		if (timeColor != null) {
+			childs.Add(new TextBlock { Text = $"[{DateTime.Now.ToLongTimeString()}] ", Color = timeColor });
+		}
+		childs.Add(new TextBlock { Text = message, Color = textColor });
+
 		_stackPanel.Add( new WrapPanel {
 			Content = 
 			new HorizontalStackPanel {
-				Children = new[]
-				{
-						new TextBlock {Text = $"[{DateTime.Now.ToLongTimeString()}] ", Color = new Color(System.Drawing.Color.Yellow.R,System.Drawing.Color.Yellow.G,System.Drawing.Color.Yellow.B)},
-						new TextBlock {Text = message}
-					}
+				Children = childs
 			}
 		});
 		_scrollPanel.Top = _stackPanel.Children.Sum(x => x.Size.Height) - this.Size.Height;
