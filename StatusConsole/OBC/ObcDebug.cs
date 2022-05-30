@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace StatusConsole.OBC {
 
@@ -19,11 +20,13 @@ namespace StatusConsole.OBC {
         Byte[] rxData = new Byte[1000];
         int rxIdx = 0;
         private IOutputWrapper screen;
+        private ILogger Log;
         private EventFactory eventFactory;
 
 
-        public ObcDebug(IConfigurationSection debugConfig, IOutputWrapper screen) {
+        public ObcDebug(IConfigurationSection debugConfig, IOutputWrapper screen, ILogger log) {
             this.screen = screen;
+            Log = log;
             eventFactory = new EventFactory(debugConfig);
         }
 
@@ -32,21 +35,26 @@ namespace StatusConsole.OBC {
                 case L2Status.IDLE:
                     if (dataByte == 0x7E) {
                         Status = L2Status.DATA;
+                        Log.LogTrace("Rx: Frame Start");
                     }
                     break;
                 case L2Status.ESCAPE:
                     rxData[rxIdx++] = (Byte)dataByte;
+                    Log.LogTrace("Rx(e): {@mycharHex}", "0x" + Convert.ToByte(dataByte).ToString("X2"));
                     Status = L2Status.DATA;
                     break;
                 case L2Status.DATA:
                     if (dataByte == 0x7E) {
+                        Log.LogTrace("Rx: Frame End");
                         ProcessFrame(rxData, rxIdx);
                         Status = L2Status.IDLE;
                         rxIdx = 0;
                     } else if (dataByte == 0x7D) {
+                        Log.LogTrace("Rx: Esc");
                         Status = L2Status.ESCAPE;
                     } else {
-                        rxData[rxIdx++] = (Byte)dataByte;   
+                        rxData[rxIdx++] = (Byte)dataByte;
+                        Log.LogTrace("Rx(e): {@mycharHex}", "0x" + Convert.ToByte(dataByte).ToString("X2"));
                     }
                     break;
                 default:
@@ -60,6 +68,7 @@ namespace StatusConsole.OBC {
                 var eventId = (byte)(rxData[1] & 0x3F);
                 var severity = (EventSeverity)((rxData[1] & 0xC0) >> 6);
 
+                Log.LogDebug("Rx: Frame mod:{@moduleId}, ev: {@eventId}, [{@rxData}],len: {@len}", moduleId, eventId, (rxData.AsSpan(0, len).ToArray()), len);
                 string eventString = eventFactory.GetAsString(moduleId, eventId, rxData, len);
                 if (severity == EventSeverity.INFO) {
                     screen.WriteLine(eventString);
@@ -72,9 +81,8 @@ namespace StatusConsole.OBC {
                     }
                     screen.WriteLine(eventString, col);
                 }
-
-
             } else {
+                Log.LogError("Fragmented Frame with {@len}.", len);
                 // No usefull data in this 'frame'.
             }
 

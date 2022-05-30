@@ -50,13 +50,14 @@ namespace StatusConsole {
                 Port.Open();
                 Port.NewLine = Config?.GetValue<String>("NewLine") ?? "\r";
                 //_serialPort.ReadTimeout = 10;
-                Screen.WriteLine("Uart " + Port.PortName + " connected");
+                Log.LogInformation("Uart Uart {@portname} connected. Using {@newline} as newline char.", Port.PortName, "0x" + Convert.ToByte(Port.NewLine[0]).ToString("X2"));
+
+                    
                 Continue = true;
                 Receiver = Task.Run(() => Read(Port));
             } catch (Exception ex) {
                 Continue = false;
-                Screen.WriteLine("Error starting '" + Config?.GetValue<String>("ComName") ?? "<null>->COM1" + "' !", ConsoleColor.Red);
-                Screen.WriteLine(ex.Message, ConsoleColor.Red);
+                Log.LogError(ex, "Error starting '" + Config?.GetValue<String>("ComName") ?? "<null>->COM1" + "' !");
             }
             return Task.CompletedTask;
         }
@@ -67,7 +68,7 @@ namespace StatusConsole {
             if (Receiver != null) {
                 await Receiver;       // reader Task will be finished and execution "awaits it" and continues afterwards. (Without blocking any thread here)
                 Port.Close();
-                Screen.WriteLine("Uart " + Port.PortName + " closed.");
+                Log.LogInformation("Uart {@portname} closed.",Port.PortName);
             }
         }
 
@@ -76,8 +77,9 @@ namespace StatusConsole {
             if (Continue) {
                 try {
                     Port?.WriteLine(line);
+                    Log.LogDebug("Tx: {@line}", line);
                 } catch (Exception ex) {
-                    Screen.WriteLine("Fehler: " + ex.Message);
+                    Log.LogError("Fehler: " + ex.Message);
                 }
             }
         }

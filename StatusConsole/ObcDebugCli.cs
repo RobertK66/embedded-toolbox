@@ -33,6 +33,7 @@ namespace StatusConsole {
             while(Continue) {
                 try {
                     int b = port.ReadByte();
+                    Log.LogTrace("Rx: {@mycharHex} '{@mychar}'", "0x" + b.ToString("X2"), (b == '\n') ? ' ' : b);
                     debug.ProcessByte(b);
                 } catch(TimeoutException) { }
             }
@@ -41,7 +42,7 @@ namespace StatusConsole {
 
         override public void SetScreen(IOutputWrapper scr) {
             Screen = scr;
-            debug = new OBC.ObcDebug(debugConfig, Screen);
+            debug = new OBC.ObcDebug(debugConfig, Screen, Log);
         }
 
       
