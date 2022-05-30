@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
@@ -9,58 +10,19 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace StatusConsole {
-    public class UartCli : ITtyService {
-        private IConfigurationSection Config;
-        private SerialPort  Port;
-        private bool Continue;
-        IOutputWrapper Screen;
-        Task Receiver;
+    public class UartCli : SerialPortBase {
 
-        public void Initialize(IConfigurationSection cs, IConfiguration rootConfig) {
-            Config = cs;
-        }
-
-        string ITtyService.GetInterfaceName() {
-            return Config.Key;
-        }
-
-        IConfigurationSection ITtyService.GetScreenConfig() {
-            return Config.GetSection("Screen");
-        }
-        
-        Task IHostedService.StartAsync(CancellationToken cancellationToken) {
-            try {
-                Port = new SerialPort();
-                Port.PortName = Config?.GetValue<String>("ComName") ?? "COM1";
-                Port.BaudRate = Config?.GetValue<int?>("Baud") ?? 9600;
-                Port.Parity = Parity.None;
-                Port.DataBits = 8;
-                Port.StopBits = StopBits.One;
-                Port.Handshake = Handshake.None;
-                Port.Open();
-                Port.NewLine = Config?.GetValue<String>("NewLine") ?? "\r";
-                //_serialPort.ReadTimeout = 10;
-                Screen.WriteLine("Uart " + Port.PortName + " connected");
-                Continue = true;
-                Receiver = Task.Run(() => Read());
-            } catch (Exception ex) {
-                Continue = false;
-                Screen.WriteLine("Error starting '" + Config?.GetValue<String>("ComName")??"<null>->COM1" + "' !", ConsoleColor.Red);
-                Screen.WriteLine(ex.Message, ConsoleColor.Red);
-            }
-            return Task.CompletedTask;
-        }
-
-        public void Read() {
+        override public void Read(SerialPort port) {
             // Avoid blocking the thread;
             // If nothing gets received, we sometimes have to check for the Continuation flag here.
-            if (Port.ReadTimeout == -1) {
-                Port.ReadTimeout = 500;
+            if (port.ReadTimeout == -1) {
+                port.ReadTimeout = 500;
             }
             while(Continue) {
                 try {
-                    char ch = (char)Port.ReadChar();
-                    if (ch.ToString().Equals(Port.NewLine)) {
+                    char ch = (char)port.ReadChar();
+                    Log.LogInformation("Char {@mychar}", ch);
+                    if (ch.ToString().Equals(port.NewLine)) {
                         Screen.WriteLine("");
                     } else {
                         Screen.Write(ch.ToString());
@@ -72,35 +34,6 @@ namespace StatusConsole {
 ;                }
             }
         }
-
-        async Task IHostedService.StopAsync(CancellationToken cancellationToken) {
-            // terminate the reader Task.
-            Continue = false;
-            if(Receiver != null) {
-                await Receiver;       // reader Task will be finished and execution "awaits it" and continues afterwards. (Without blocking any thread here)
-                Port.Close();
-                Screen.WriteLine("Uart " + Port.PortName + " closed.");
-            }
-        }
-
-        void ITtyService.SendUart(string line) {
-            if(Continue) {
-                try {
-                    Port?.WriteLine(line);
-                } catch (Exception ex) {
-                    Screen.WriteLine("Fehler: " + ex.Message);
-                }
-            }
-        }
-
-        public bool IsConnected() {
-            return Continue;
-        }
-
-        public void SetScreen(IOutputWrapper scr) {
-            Screen = scr;
-        }
-
       
     }
 }

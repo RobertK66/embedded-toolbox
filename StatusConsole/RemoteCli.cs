@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
@@ -36,7 +37,7 @@ namespace StatusConsole {
         IOutputWrapper Screen;
         private IConfigurationSection screenConfig;
 
-        public void Initialize(IConfigurationSection cs, IConfiguration rootConfig) {
+        public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger) {
             IfName = cs.Key;
             HostName = cs?.GetValue<String>("RemoteHost") ?? "localhost";
             Port = cs?.GetValue<int?>("RemotePort") ?? 9000;

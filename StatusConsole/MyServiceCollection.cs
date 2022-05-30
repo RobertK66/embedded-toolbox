@@ -19,7 +19,7 @@ namespace StatusConsole {
 
         // This gets called by IOC Container and allows to read the Configuration (from appsettings.json)
         // Here we Instanciate all tty Services ("UARTS") configured
-        public MyServiceCollection(IConfiguration conf, ILogger<MyServiceCollection> logger) {
+        public MyServiceCollection(IConfiguration conf, ILogger<MyServiceCollection> logger, ILoggerFactory logFactory) {
             Log = logger;
             Log.LogDebug("ServiceCollection constructor called");
 
@@ -28,7 +28,7 @@ namespace StatusConsole {
                 var type = Type.GetType(uc.GetValue<String>("Impl")??"dummy");
                 if(type != null) {
                     ITtyService ttyService = (ITtyService)Activator.CreateInstance(type);
-                    ttyService.Initialize(uc, conf);
+                    ttyService.Initialize(uc, conf, logFactory.CreateLogger(uc.Key)); 
                     ttyServices.Add(uc.Key, ttyService);
                     keys.Add(uc.Key);
                 } else {

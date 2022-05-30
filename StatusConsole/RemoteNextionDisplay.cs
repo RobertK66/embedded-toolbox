@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using StatusConsole.L3;
 using System;
 using System.Collections.Generic;
@@ -39,7 +40,7 @@ namespace StatusConsole {
 
         private IL3Protocol Nextion = new NextionL3();
 
-        public void Initialize(IConfigurationSection cs, IConfiguration rootConfig) {
+        public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger)  {
             IfName = cs.Key;
             HostName = cs?.GetValue<String>("RemoteHost") ?? "localhost";
             Port = cs?.GetValue<int?>("RemotePort") ?? 9000;

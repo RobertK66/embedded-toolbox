@@ -1,35 +1,23 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using StatusConsole.L3;
 using System;
-using System.Collections.Generic;
 using System.IO.Ports;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace StatusConsole {
-   
-    public class RemoteNextionDisplay2 : ITtyService {
-        private IConfigurationSection Config;
+    public abstract class SerialPortBase: ITtyService {
+        protected IConfigurationSection Config;
         private SerialPort Port;
-        private bool Continue;
-        IOutputWrapper Screen;
+        protected bool Continue;
+        protected IOutputWrapper Screen;
         Task Receiver;
+        protected ILogger Log;
 
-        private NextionL3 Nextion = new NextionL3();
-
-        public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger)  {
+        virtual public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger)  {
             Config = cs;
-            Nextion.NextionEventReceived += Nextion_NextionEventReceived;
-        }
-
-        private void Nextion_NextionEventReceived(object arg1, NextionEventArgs arg2) {
-            Screen.WriteLine(arg2.Message??"???");
+            Log = logger;
         }
 
         string ITtyService.GetInterfaceName() {
@@ -38,6 +26,16 @@ namespace StatusConsole {
 
         IConfigurationSection ITtyService.GetScreenConfig() {
             return Config.GetSection("Screen");
+        }
+
+
+        virtual public void SetScreen(IOutputWrapper scr) {
+            Screen = scr;
+        }
+
+
+        public bool IsConnected() {
+            return Continue;
         }
 
         Task IHostedService.StartAsync(CancellationToken cancellationToken) {
@@ -50,39 +48,17 @@ namespace StatusConsole {
                 Port.StopBits = StopBits.One;
                 Port.Handshake = Handshake.None;
                 Port.Open();
-                //Port.NewLine = ''; Config?.GetValue<String>("NewLine") ?? "\r";
+                Port.NewLine = Config?.GetValue<String>("NewLine") ?? "\r";
                 //_serialPort.ReadTimeout = 10;
                 Screen.WriteLine("Uart " + Port.PortName + " connected");
                 Continue = true;
-                Receiver = Task.Run(() => Read());
+                Receiver = Task.Run(() => Read(Port));
             } catch (Exception ex) {
                 Continue = false;
                 Screen.WriteLine("Error starting '" + Config?.GetValue<String>("ComName") ?? "<null>->COM1" + "' !", ConsoleColor.Red);
                 Screen.WriteLine(ex.Message, ConsoleColor.Red);
             }
             return Task.CompletedTask;
-        }
-
-        public void Read() {
-            // Avoid blocking the thread;
-            // If nothing gets received, we sometimes have to check for the Continuation flag here.
-            if (Port.ReadTimeout == -1) {
-                Port.ReadTimeout = 500;
-            }
-            byte[] data = new byte[500];
-            int idx = 0;
-            while (Continue) {
-                try {
-                    int x = Port.Read(data, idx, 100);
-                    Nextion.ProcessReceivedData(data, x);
-                    //char ch = (char)Port.ReadChar();
-                    //if (ch.ToString().Equals(Port.NewLine)) {
-                    //    Screen.WriteLine("");
-                    //} else {
-                    //    Screen.Write(ch.ToString());
-                    //}
-                } catch (TimeoutException) { }
-            }
         }
 
         async Task IHostedService.StopAsync(CancellationToken cancellationToken) {
@@ -95,19 +71,18 @@ namespace StatusConsole {
             }
         }
 
+
         void ITtyService.SendUart(string line) {
             if (Continue) {
-              Nextion.ConvertAndSendL3CommandLine(line, (d, l) => Port?.Write(d ,0, l));
+                try {
+                    Port?.WriteLine(line);
+                } catch (Exception ex) {
+                    Screen.WriteLine("Fehler: " + ex.Message);
+                }
             }
         }
 
-        public bool IsConnected() {
-            return Continue;
-        }
-
-        public void SetScreen(IOutputWrapper scr) {
-            Screen = scr;
-        }
+        abstract public void Read(SerialPort port);
 
     }
 }
