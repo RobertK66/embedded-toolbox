@@ -16,11 +16,11 @@ namespace StatusConsole {
         IConfigurationSection debugConfig;
 
         override public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger) {
-            Config = cs;
-            Log = logger;
-            String configName = Config?.GetValue<String>("ImplConfigSection");
+            base.Initialize(cs, rootConfig, logger);
+
             // The value of "ImplsConfigSection" has the name of another Config Section, which we have to search for in the whole appsettings config....
             // TODO: Refactor the main app setting, appstart and hierachies of classes and IOC and so on......
+            String configName = Config?.GetValue<String>("ImplConfigSection");
             debugConfig = rootConfig?.GetSection(configName);
         }
 
@@ -33,7 +33,7 @@ namespace StatusConsole {
             while(Continue) {
                 try {
                     int b = port.ReadByte();
-                    Log.LogTrace("Rx: {@mycharHex} '{@mychar}'", "0x" + b.ToString("X2"), (b == '\n') ? ' ' : b);
+                    Log?.LogTrace("Rx: {@mycharHex} '{@mychar}'", "0x" + b.ToString("X2"), (b == '\n') ? ' ' : b);
                     debug.ProcessByte(b);
                 } catch(TimeoutException) { }
             }

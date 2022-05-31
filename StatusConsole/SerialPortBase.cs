@@ -13,10 +13,12 @@ namespace StatusConsole {
         protected bool Continue;
         protected IOutputWrapper Screen;
         Task Receiver;
-        protected ILogger Log;
+        protected ILogger? Log;
+        private String? OnConnect;
 
-        virtual public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger)  {
+        virtual public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger? logger)  {
             Config = cs;
+            OnConnect = cs.GetValue<String>("OnConnect", null);
             Log = logger;
         }
 
@@ -50,14 +52,15 @@ namespace StatusConsole {
                 Port.Open();
                 Port.NewLine = Config?.GetValue<String>("NewLine") ?? "\r";
                 //_serialPort.ReadTimeout = 10;
-                Log.LogInformation("Uart Uart {@portname} connected. Using {@newline} as newline char.", Port.PortName, "0x" + Convert.ToByte(Port.NewLine[0]).ToString("X2"));
+                Log?.LogInformation("Uart Uart {@portname} connected. Using {@newline} as newline char.", Port.PortName, "0x" + Convert.ToByte(Port.NewLine[0]).ToString("X2"));
 
                     
                 Continue = true;
                 Receiver = Task.Run(() => Read(Port));
+                SendUart(OnConnect);
             } catch (Exception ex) {
                 Continue = false;
-                Log.LogError(ex, "Error starting '" + Config?.GetValue<String>("ComName") ?? "<null>->COM1" + "' !");
+                Log?.LogError(ex, "Error starting '" + Config?.GetValue<String>("ComName") ?? "<null>->COM1" + "' !");
             }
             return Task.CompletedTask;
         }
@@ -68,18 +71,18 @@ namespace StatusConsole {
             if (Receiver != null) {
                 await Receiver;       // reader Task will be finished and execution "awaits it" and continues afterwards. (Without blocking any thread here)
                 Port.Close();
-                Log.LogInformation("Uart {@portname} closed.",Port.PortName);
+                Log?.LogInformation("Uart {@portname} closed.",Port.PortName);
             }
         }
 
 
-        void ITtyService.SendUart(string line) {
+        public void SendUart(string line) {
             if (Continue) {
                 try {
                     Port?.WriteLine(line);
-                    Log.LogDebug("Tx: {@line}", line);
+                    Log?.LogDebug("Tx: {@line}", line);
                 } catch (Exception ex) {
-                    Log.LogError("Fehler: " + ex.Message);
+                    Log?.LogError("Fehler: " + ex.Message);
                 }
             }
         }

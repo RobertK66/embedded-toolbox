@@ -24,15 +24,17 @@ namespace StatusConsole {
             Log.LogDebug("ServiceCollection constructor called");
 
             var uartConfigs = conf?.GetSection("UARTS").GetChildren();
-            foreach(var uc in uartConfigs) {
-                var type = Type.GetType(uc.GetValue<String>("Impl")??"dummy");
-                if(type != null) {
-                    ITtyService ttyService = (ITtyService)Activator.CreateInstance(type);
-                    ttyService.Initialize(uc, conf, logFactory.CreateLogger(uc.Key)); 
-                    ttyServices.Add(uc.Key, ttyService);
-                    keys.Add(uc.Key);
-                } else {
-                    throw new ApplicationException("UART " + uc.Key + " Impl class not found!" );
+            if (uartConfigs != null) {
+                foreach (var uc in uartConfigs) {
+                    var type = Type.GetType(uc.GetValue<String>("Impl") ?? "dummy");
+                    if (type != null) {
+                        ITtyService ttyService = (ITtyService)Activator.CreateInstance(type);
+                        ttyService?.Initialize(uc, conf, logFactory.CreateLogger(uc.Key));
+                        ttyServices.Add(uc.Key, ttyService);
+                        keys.Add(uc.Key);
+                    } else {
+                        throw new ApplicationException("UART " + uc.Key + " Impl class not found!");
+                    }
                 }
             }
             if(keys.Count > 0) {

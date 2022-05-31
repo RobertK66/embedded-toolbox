@@ -23,10 +23,10 @@ namespace StatusConsole {
             while(Continue) {
                 try {
                     char ch = (char)port.ReadChar();
-                    Log.LogTrace("Rx: {@mycharHex} '{@mychar}'", "0x"+Convert.ToByte(ch).ToString("X2"), (ch=='\n')?' ':ch);
+                    Log?.LogTrace("Rx: {@mycharHex} '{@mychar}'", "0x"+Convert.ToByte(ch).ToString("X2"), (ch=='\n')?' ':ch);
                     if (ch.ToString().Equals(port.NewLine)) {
                         Screen.WriteLine("");
-                        Log.LogDebug("Rx: " + debugLine);
+                        Log?.LogDebug("Rx: " + debugLine);
                         debugLine = "";
                     } else {
                         Screen.Write(ch.ToString());

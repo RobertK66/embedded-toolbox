@@ -65,7 +65,7 @@ namespace StatusConsole {
         private static LogPanel myLogPanel = new(myLock, ConsoleColor.Blue.GetGuiColor());
         private IControl mainwin = null;
         private TabPanel tabPanel = new();
-        private MyInputController? myInputController = null;
+        private MyInputController myInputController = new MyInputController();
         private MyFunctionController? myFunctionController = null;
         private int mainX = 0;
         private int mainY = 0;
@@ -76,7 +76,7 @@ namespace StatusConsole {
             _Log.LogDebug("Program() Constructor called.");
 
             uartServices = services;
-            myInputController = new MyInputController();
+            //myInputController = new MyInputController();
             myFunctionController = new MyFunctionController(services);
       
            

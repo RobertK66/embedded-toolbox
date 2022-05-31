@@ -39,9 +39,9 @@ namespace StatusConsole {
 
         public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger) {
             IfName = cs.Key;
-            HostName = cs?.GetValue<String>("RemoteHost") ?? "localhost";
-            Port = cs?.GetValue<int?>("RemotePort") ?? 9000;
-            NewLine = cs?.GetValue<String>("NewLine");
+            HostName = cs.GetValue<String>("RemoteHost") ?? "localhost";
+            Port = cs.GetValue<int?>("RemotePort") ?? 9000;
+            NewLine = cs.GetValue<String>("NewLine");
 
             screenConfig = cs.GetSection("Screen");
         }
@@ -95,12 +95,12 @@ namespace StatusConsole {
                 if (socket == null) {     // First one wins, all other are ignored.....
                     socket = (Socket)ar.AsyncState;
                     // Complete the connection.  
-                    socket.EndConnect(ar);
+                    socket?.EndConnect(ar);
                     Screen.WriteLine("Remote port " + HostName + ":" + Port + " connected");
 
                     Continue = true;
                     // Start Receiving data by entering a data Buffer and a callback.
-                    socket.BeginReceive(Buffer, 0, BufferSize, 0, new AsyncCallback(ReceiveCallback), null);
+                    socket?.BeginReceive(Buffer, 0, BufferSize, 0, new AsyncCallback(ReceiveCallback), null);
                 } else {
                     Screen.WriteLine("Duplicate connection to host !!!");
                     // If more than one addresss was tried. gracefully close others. (to be tested somehow ;-) .....)
