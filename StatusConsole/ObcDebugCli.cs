@@ -35,8 +35,15 @@ namespace StatusConsole {
                     int b = port.ReadByte();
                     Log?.LogTrace("Rx: {@mycharHex} '{@mychar}'", "0x" + b.ToString("X2"), (b == '\n') ? ' ' : b);
                     debug.ProcessByte(b);
-                } catch(TimeoutException) { }
-            }
+                } catch(TimeoutException) {
+                    // Do nothing. This is only here to get while condition checked.
+                } catch (Exception ex) {
+                    Screen.WriteLine("Reader terminated with Exception: " + ex.Message, ConsoleColor.Red);
+                    Screen.WriteLine("Try to reconnect with <ESC>.");           // TODO: Esc->reconnect is a feature of (G)TUI. Should be signaled from higher level of application !!!????
+                    Log?.LogError(new EventId(2, "Rx"), ex, "Error: Closing reader!");
+                    Continue = false;
+                }
+        }
         }
 
 

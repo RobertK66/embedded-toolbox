@@ -50,17 +50,19 @@ namespace StatusConsole {
                 Port.StopBits = StopBits.One;
                 Port.Handshake = Handshake.None;
                 Port.Open();
+                Port.DtrEnable = true;
                 Port.NewLine = Config?.GetValue<String>("NewLine") ?? "\r";
                 //_serialPort.ReadTimeout = 10;
-                Log?.LogInformation("Uart Uart {@portname} connected. Using {@newline} as newline char.", Port.PortName, "0x" + Convert.ToByte(Port.NewLine[0]).ToString("X2"));
+                Log?.LogInformation(new EventId(0),"Uart Uart {@portname} connected. Using {@newline} as newline char.", Port.PortName, "0x" + Convert.ToByte(Port.NewLine[0]).ToString("X2"));
 
                     
                 Continue = true;
                 Receiver = Task.Run(() => Read(Port));
+                Log?.LogInformation(new EventId(0), "Sending OnConnect command {@cmd}", OnConnect);
                 SendUart(OnConnect);
             } catch (Exception ex) {
                 Continue = false;
-                Log?.LogError(ex, "Error starting '" + Config?.GetValue<String>("ComName") ?? "<null>->COM1" + "' !");
+                Log?.LogError(new EventId(0), ex, "Error starting '" + Config?.GetValue<String>("ComName") ?? "<null>->COM1" + "' !");
             }
             return Task.CompletedTask;
         }
@@ -71,7 +73,7 @@ namespace StatusConsole {
             if (Receiver != null) {
                 await Receiver;       // reader Task will be finished and execution "awaits it" and continues afterwards. (Without blocking any thread here)
                 Port.Close();
-                Log?.LogInformation("Uart {@portname} closed.",Port.PortName);
+                Log?.LogInformation(new EventId(0), "Uart {@portname} closed.",Port.PortName);
             }
         }
 
@@ -80,9 +82,9 @@ namespace StatusConsole {
             if (Continue) {
                 try {
                     Port?.WriteLine(line);
-                    Log?.LogDebug("Tx: {@line}", line);
+                    Log?.LogDebug(new EventId(1, "Tx"), "{@line}", line);
                 } catch (Exception ex) {
-                    Log?.LogError("Fehler: " + ex.Message);
+                    Log?.LogError(new EventId(1, "Tx"), "Send Error: " + ex.Message);
                 }
             }
         }

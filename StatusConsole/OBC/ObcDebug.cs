@@ -35,6 +35,7 @@ namespace StatusConsole.OBC {
                 case L2Status.IDLE:
                     if (dataByte == 0x7E) {
                         Status = L2Status.DATA;
+                        rxIdx = 0;
                         Log.LogTrace("Rx: Frame Start");
                     }
                     break;
@@ -45,10 +46,17 @@ namespace StatusConsole.OBC {
                     break;
                 case L2Status.DATA:
                     if (dataByte == 0x7E) {
-                        Log.LogTrace("Rx: Frame End");
-                        ProcessFrame(rxData, rxIdx);
-                        Status = L2Status.IDLE;
-                        rxIdx = 0;
+                        if (rxIdx == 0) {
+                            // 2 Frame marker without data in between -> This is very likely to be a frame start now!
+                            Status = L2Status.DATA;
+                            rxIdx = 0;
+                            Log.LogTrace("Rx: Dual 0x7E -> Asume new Frame Start");
+                        } else {
+                            Log.LogTrace("Rx: Frame End");
+                            ProcessFrame(rxData, rxIdx);
+                            Status = L2Status.IDLE;
+                            rxIdx = 0;
+                        }
                     } else if (dataByte == 0x7D) {
                         Log.LogTrace("Rx: Esc");
                         Status = L2Status.ESCAPE;
