@@ -11,11 +11,12 @@ namespace StatusConsole {
     public interface ITtyService : IHostedService {
         void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger? logger);
         void SetScreen(IOutputWrapper scr);
-        void SendUart(string line);
+        void SendUart(byte[] toSend, int count);
 
         IConfigurationSection GetScreenConfig();
 
         string GetInterfaceName();
         bool IsConnected();
+        byte[] ProcessCommand(String s);
     }
 }

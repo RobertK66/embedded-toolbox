@@ -95,11 +95,11 @@ namespace StatusConsole {
             }
         }
 
-        void ITtyService.SendUart(string line) {
-            if (Continue) {
-              Nextion.ConvertAndSendL3CommandLine(line, (d, l) => Port?.Write(d ,0, l));
-            }
-        }
+        //void ITtyService.SendUart(string line) {
+        //    if (Continue) {
+        //      Nextion.ConvertAndSendL3CommandLine(line, (d, l) => Port?.Write(d ,0, l));
+        //    }
+        //}
 
         public bool IsConnected() {
             return Continue;
@@ -109,5 +109,12 @@ namespace StatusConsole {
             Screen = scr;
         }
 
+        public void SendUart(byte[] toSend, int len) {
+            throw new NotImplementedException();
+        }
+
+        public byte[] ProcessCommand(string s) {
+            throw new NotImplementedException();
+        }
     }
 }

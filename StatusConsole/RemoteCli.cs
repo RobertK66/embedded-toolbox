@@ -28,7 +28,7 @@ namespace StatusConsole {
         private int Port;
 
         private const int BufferSize = 255;
-        private byte[] Buffer = new byte[BufferSize+5];
+        private byte[] Buffer = new byte[BufferSize + 5];
         private Socket socket = null;
         private bool Continue;
         private String NewLine = String.Empty;
@@ -72,7 +72,7 @@ namespace StatusConsole {
 
         // Searches for all Host Endpoints and initates Connect to (all of) them.
         private List<IAsyncResult> BeginnConnect(string server, int port) {
-            List<IAsyncResult> retVal = new List<IAsyncResult> ();
+            List<IAsyncResult> retVal = new List<IAsyncResult>();
 
             IPHostEntry hostEntry = null;
             hostEntry = Dns.GetHostEntry(server);
@@ -135,23 +135,33 @@ namespace StatusConsole {
         }
 
         async Task IHostedService.StopAsync(CancellationToken cancellationToken) {
-            if(socket != null) {
+            if (socket != null) {
                 if (socket.Connected) {
                     await socket.DisconnectAsync(false, cancellationToken);
                 }
             }
         }
 
-        void ITtyService.SendUart(string line) {
-            if(IsConnected()) {
-                line += NewLine;
-                socket.Send(Encoding.UTF8.GetBytes(line));
-            }
-        }
+        //void ITtyService.SendUart(string line) {
+        //    if(IsConnected()) {
+        //        line += NewLine;
+        //        socket.Send(Encoding.UTF8.GetBytes(line));
+        //    }
+        //}
 
         public bool IsConnected() {
             return Continue;
         }
 
+        public byte[] ProcessCommand(string s) {
+            byte[] data = Encoding.UTF8.GetBytes(s);
+            return data;
+        }
+
+        public void SendUart(byte[] toSend, int len) {
+            if (IsConnected()) {
+                socket.Send(toSend, len, SocketFlags.None);
+            }
+        }
     }
 }

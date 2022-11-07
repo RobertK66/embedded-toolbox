@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO.Ports;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +19,7 @@ namespace StatusConsole {
 
         virtual public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger? logger)  {
             Config = cs;
-            OnConnect = cs.GetValue<String>("OnConnect", null);
+            OnConnect = cs.GetValue<String>("OnConnect", "");
             Log = logger;
         }
 
@@ -59,7 +60,7 @@ namespace StatusConsole {
                 Continue = true;
                 Receiver = Task.Run(() => Read(Port));
                 Log?.LogInformation(new EventId(0), "Sending OnConnect command {@cmd}", OnConnect);
-                SendUart(OnConnect);
+                SendUart(Encoding.ASCII.GetBytes((OnConnect??"")+"\n"), Encoding.ASCII.GetBytes(OnConnect ?? "").Length+1);
             } catch (Exception ex) {
                 Continue = false;
                 Log?.LogError(new EventId(0), ex, "Error starting '" + Config?.GetValue<String>("ComName") ?? "<null>->COM1" + "' !");
@@ -78,11 +79,11 @@ namespace StatusConsole {
         }
 
 
-        public void SendUart(string line) {
+        public void SendUart(byte [] bytes, int len) {
             if (Continue) {
                 try {
-                    Port?.WriteLine(line);
-                    Log?.LogDebug(new EventId(1, "Tx"), "{@line}", line);
+                    Port?.Write(bytes, 0, len);
+                    Log?.LogDebug(new EventId(1, "Tx"), "{@line}", bytes);
                 } catch (Exception ex) {
                     Log?.LogError(new EventId(1, "Tx"), "Send Error: " + ex.Message);
                 }
@@ -91,5 +92,8 @@ namespace StatusConsole {
 
         abstract public void Read(SerialPort port);
 
+        public byte[] ProcessCommand(String s) {
+            return Encoding.ASCII.GetBytes(s + Port.NewLine);
+        }
     }
 }

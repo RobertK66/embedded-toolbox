@@ -186,17 +186,36 @@ namespace StatusConsole {
             }
         }
 
-        void ITtyService.SendUart(string line) {
-            if (IsConnected()) {
-                Nextion.ConvertAndSendL3CommandLine(line, (d, l) => socket.Send(d, l, SocketFlags.None));
-                //line += NewLine;
-                //socket.Send(Encoding.UTF8.GetBytes(line));
-            }
-        }
+        //void ITtyService.SendUart(string line) {
+        //    if (IsConnected()) {
+        //        Nextion.ConvertAndSendL3CommandLine(line, (d, l) => socket.Send(d, l, SocketFlags.None));
+        //        //line += NewLine;
+        //        //socket.Send(Encoding.UTF8.GetBytes(line));
+        //    }
+        //}
 
         public bool IsConnected() {
             return Continue;
         }
 
+        void ITtyService.Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger) {
+            throw new NotImplementedException();
+        }
+
+        void ITtyService.SetScreen(IOutputWrapper scr) {
+            throw new NotImplementedException();
+        }
+
+        void ITtyService.SendUart(byte[] toSend, int len) {
+            throw new NotImplementedException();
+        }
+
+        bool ITtyService.IsConnected() {
+            throw new NotImplementedException();
+        }
+
+        byte[] ITtyService.ProcessCommand(string s) {
+            throw new NotImplementedException();
+        }
     }
 }

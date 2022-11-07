@@ -40,7 +40,8 @@ namespace StatusConsole {
                                con.LogPanel = myLogPanel;
                            });
                            cl.AddDebug();                   // This gives Logging in the Debug Console of VS. (configure in appsettings.json)
-                                                            // This giving possible file logger implementation (serilog). Note Debug and ConGui works without serilog dependency!
+                           
+                           // This giving possible file logger implementation (serilog). Note Debug and ConGui works without serilog dependency!
                            cl.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(hostContext.Configuration).CreateLogger());
                        })
                        .ConfigureServices(services => {
@@ -208,7 +209,8 @@ namespace StatusConsole {
         private void CommandCallback(string command) {
             _Log.LogDebug("Command " + command);
             var s = uartServices.GetCurrentService();
-            s.SendUart(command);
+            byte[] toSend  = s.ProcessCommand(command);
+            s.SendUart(toSend, toSend.Length);
         }
 
     }
