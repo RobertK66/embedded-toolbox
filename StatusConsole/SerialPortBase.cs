@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace StatusConsole {
     public abstract class SerialPortBase: ITtyService {
         protected IConfigurationSection Config;
-        private SerialPort Port;
+        protected SerialPort Port;
         protected bool Continue;
         protected IOutputWrapper Screen;
         Task Receiver;
@@ -60,7 +60,7 @@ namespace StatusConsole {
                 Continue = true;
                 Receiver = Task.Run(() => Read(Port));
                 Log?.LogInformation(new EventId(0), "Sending OnConnect command {@cmd}", OnConnect);
-                SendUart(Encoding.ASCII.GetBytes((OnConnect??"")+"\n"), Encoding.ASCII.GetBytes(OnConnect ?? "").Length+1);
+                SendUart(Encoding.ASCII.GetBytes((OnConnect??"")+Port.NewLine), Encoding.ASCII.GetBytes(OnConnect??"").Length+1);
             } catch (Exception ex) {
                 Continue = false;
                 Log?.LogError(new EventId(0), ex, "Error starting '" + Config?.GetValue<String>("ComName") ?? "<null>->COM1" + "' !");
@@ -92,7 +92,7 @@ namespace StatusConsole {
 
         abstract public void Read(SerialPort port);
 
-        public byte[] ProcessCommand(String s) {
+        virtual public byte[] ProcessCommand(String s) {
             return Encoding.ASCII.GetBytes(s + Port.NewLine);
         }
     }
