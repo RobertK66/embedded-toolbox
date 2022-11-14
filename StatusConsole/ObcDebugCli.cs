@@ -28,7 +28,7 @@ namespace StatusConsole {
             // Avoid blocking the thread;
             // If nothing gets received, we sometimes have to check for the Continuation flag here.
             if (port.ReadTimeout == -1) {
-                port.ReadTimeout = 500;
+                port.ReadTimeout = 5000;
             }
             while(Continue) {
                 try {
@@ -37,6 +37,7 @@ namespace StatusConsole {
                     debug.ProcessByte(b);
                 } catch(TimeoutException) {
                     // Do nothing. This is only here to get while condition checked.
+                    // This ( https://github.com/dotnet/runtime/issues/78319 ) prevents project from upgrade to dotnet 7 !
                 } catch (Exception ex) {
                     Screen.WriteLine("Reader terminated with Exception: " + ex.Message, ConsoleColor.Red);
                     Screen.WriteLine("Try to reconnect with <ESC>.");           // TODO: Esc->reconnect is a feature of (G)TUI. Should be signaled from higher level of application !!!????
