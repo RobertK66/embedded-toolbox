@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 
 namespace StatusConsole.Thruster {
 
- 
-
     public class ThrusterSim {
 
         enum msgtype {
@@ -117,13 +115,30 @@ namespace StatusConsole.Thruster {
                     screen.WriteLine(String.Format(" - baseAdr: {0}, len: {1}", offset, lenToread));
                     SendReadAnswer(offset, lenToread);
                     break;
-               default:
+                case msgtype.WRITE:
+                    int offset2 = currentPayload[0];
+                    int lenTorwrite= currentPayload[1];
+                    screen.WriteLine(String.Format(" - baseAdr: {0}, len: {1}", offset2, lenTorwrite));
+                    SendWriteAnswer(offset2, lenTorwrite);
+                    break;
+                default:
                     screen.WriteLine(String.Format("Not implemented yet"));
                     break;
 
             }
                 
 
+        }
+
+        private void SendWriteAnswer(int offset2, int lenTorwrite) {
+            byte[] response = new byte[6];
+            response[0] = thrusterAdress;
+            response[1] = 0x00;     // Master (OBC) address 
+            response[2] = (byte)msgtype.OK;
+            response[3] = 0x00;     //CRC8
+            response[4] = 0x00;     
+            response[5] = 0x00;
+            response[3] = crcCalculator.Checksum(response.ToArray());
         }
 
         private void SendReadAnswer(int offset, int lenToRead) {
