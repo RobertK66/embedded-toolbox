@@ -15,23 +15,28 @@ namespace StatusConsole {
     public class SerialPortConnector : SerialPortBase {
 
         ISerialProtocol protocol;
-        IConfigurationSection debugConfig;
+        //IConfigurationSection protConfig;
 
         override public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger) {
             base.Initialize(cs, rootConfig, logger);
 
             // The value of "ImplsConfigSection" has the name of another Config Section, which we have to search for in the whole appsettings config....
             // TODO: Refactor the main app setting, appstart and hierachies of classes and IOC and so on......
-            String configName = Config?.GetValue<String>("ImplConfigSection");
-            if (configName != null) {
-                debugConfig = rootConfig?.GetSection(configName);
-            }
-            
-            var type = Type.GetType(Config?.GetValue<String>("ProtClass") ?? "dummy");
+
+            // Here we Instanciate the configured protocol for this Serial Connector. If there is an protocol config section declared we pass it on to the 
+            // ISerialProtocol constructor.
+            string typeName = Config?.GetValue<String>("ProtClass") ?? "dummy";
+            var type = Type.GetType(typeName);
             if (type != null) {
-                protocol = (ISerialProtocol)Activator.CreateInstance(type);
+                // Create an Instance of the protocol class and pass it its config if available.
+                IConfigurationSection protConfig = null;
+                String configName = Config?.GetValue<String>("ProtConfig");
+                if (configName != null) {
+                    protConfig = rootConfig?.GetSection(configName);
+                }
+                protocol = (ISerialProtocol)Activator.CreateInstance(type, new object[] { protConfig });
             } else {
-                throw new ApplicationException("Protocol Class not found!");
+                throw new ApplicationException("Protocol Class ("+typeName+") not found for '" + cs.Path + "' ");
             }
         }
 
@@ -84,7 +89,7 @@ namespace StatusConsole {
 
         override public void SetScreen(IOutputWrapper scr) {
             Screen = scr;
-            protocol.SetScreen(debugConfig, scr, Log, this);
+            protocol.SetScreen(null, scr, Log, this);
         }
 
         override public void ProcessCommand(String s) {

@@ -27,11 +27,11 @@ namespace StatusConsole.OBC
         public ObcDebug(IConfigurationSection debugConfig, IOutputWrapper screen, ILogger log) {
             this.screen = screen;
             Log = log;
-            eventFactory = new EventFactory(debugConfig);
+            //eventFactory = new EventFactory(debugConfig);
         }
 
-        public ObcDebug() {
-
+        public ObcDebug(IConfigurationSection debugConfig) {
+            eventFactory = new EventFactory(debugConfig);
         }
 
 
@@ -222,7 +222,7 @@ namespace StatusConsole.OBC
         public void SetScreen(IConfigurationSection debugConfig, IOutputWrapper scr, ILogger log, ITtyService tty) {
             this.screen = scr;
             this.Log = log;
-            eventFactory = new EventFactory(debugConfig);
+            //eventFactory = new EventFactory(debugConfig);
             this.tty = tty;
         }
 

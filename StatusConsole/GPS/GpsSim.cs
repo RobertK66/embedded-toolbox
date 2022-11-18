@@ -30,7 +30,7 @@ namespace StatusConsole.GPS {
             Simulator = Task.Run(() => SendTimer());
         }
 
-        public GpsSim() { }
+        public GpsSim(IConfigurationSection config) { }
 
         public void SetScreen(IConfigurationSection debugConfig, IOutputWrapper screen, Microsoft.Extensions.Logging.ILogger log, ITtyService tty) {
             this.thrConfig = debugConfig;

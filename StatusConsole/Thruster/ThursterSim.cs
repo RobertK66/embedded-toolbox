@@ -7,7 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StatusConsole.Thruster {
+namespace StatusConsole.Thruster
+{
 
     public class ThrusterSim :ISerialProtocol {
 
@@ -51,7 +52,7 @@ namespace StatusConsole.Thruster {
             }
         }
 
-        public ThrusterSim() {
+        public ThrusterSim(IConfigurationSection config) {
             this.crcCalculator = new CRC8Calc(CRC8_POLY.CRC8_CCITT);
             rxIdx = 0;
             for (int i = 0; i < 0xFF; i++) {
@@ -122,13 +123,17 @@ namespace StatusConsole.Thruster {
                 case Msgtype.READ:
                     int offset = currentPayload[0];
                     int lenToread = currentPayload[1];
-                    screen.WriteLine(String.Format(" - baseAdr: {0}, len: {1}", offset, lenToread));
+                    screen.Write(String.Format(" - baseAdr: {0}, len: {1}", offset, lenToread));
                     SendReadAnswer(offset, lenToread);
                     break;
                 case Msgtype.WRITE:
                     int offset2 = currentPayload[0];
                     int data0 = currentPayload[1];
-                    screen.WriteLine(String.Format(" - baseAdr: {0}, len: {1}, data[0]: {2}", offset2, currentPayloadLen-1, data0));
+                    screen.Write(String.Format(" - baseAdr: {0}, len: {1}, data:", offset2, currentPayloadLen-1));
+                    for (int idx = 1; idx < currentPayloadLen; idx++) {
+                         screen.Write(" " + currentPayload[idx].ToString("x2"));
+                    }
+                    screen.WriteLine("");
                     WriteDataToRegisters(currentPayload, currentPayloadLen);
                     SendOkAnswer();
                     break;
@@ -143,9 +148,10 @@ namespace StatusConsole.Thruster {
 
         private void WriteDataToRegisters(byte[] currentPayload, ushort len) {
             int offset = currentPayload[0];
-                //for (int idx = 1; idx < len; idx++) {
-                //    currentRegisterValues[offset + idx - 1] = currentPayload[idx];
-                //}
+            for (int idx = 1; idx < len; idx++) {
+                
+                currentRegisterValues[offset + idx - 1] = currentPayload[idx];
+            }
         }
 
         private void SendOkAnswer() {
@@ -170,18 +176,14 @@ namespace StatusConsole.Thruster {
             for (int i = 0; i < lenToRead; i++) {
                 response[6 + i] = currentRegisterValues[offset + i];
             }
-            // TODO: calculate CRC
             byte crc = crcCalculator.Checksum(response.Take(lenToRead+6).ToArray());
             response[3] = crc;
-            screen.WriteLine("Send " + lenToRead + " bytes as Register Values.");
-            for (int i = 0; i < lenToRead+6; i++) {
-                screen.Write(" " + response[i].ToString("x2"));
-            }
-            screen.WriteLine("");
+            screen.WriteLine("-> Send " + lenToRead + " Register Values.");
+            //for (int i = 0; i < lenToRead+6; i++) {
+            //    screen.Write(" " + response[i].ToString("x2"));
+            //}
+            //screen.WriteLine("");
             tty.SendUart(response, 6 + lenToRead);
-
-
-
         }
 
         public void SetScreen(IConfigurationSection debugConfig, IOutputWrapper screen, ILogger log, ITtyService tts) {

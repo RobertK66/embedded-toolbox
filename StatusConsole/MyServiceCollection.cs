@@ -26,7 +26,8 @@ namespace StatusConsole {
             var uartConfigs = conf?.GetSection("UARTS").GetChildren();
             if (uartConfigs != null) {
                 foreach (var uc in uartConfigs) {
-                    var type = Type.GetType(uc.GetValue<String>("Impl") ?? "dummy");
+                    // if not defined otherwise the 'Impl' class for a UART Connection is the SerialPortConnector
+                    var type = Type.GetType(uc.GetValue<String>("Impl") ?? "StatusConsole.SerialPortConnector");
                     if (type != null) {
                         ITtyService ttyService = (ITtyService)Activator.CreateInstance(type);
                         ttyService?.Initialize(uc, conf, logFactory.CreateLogger(uc.Key));

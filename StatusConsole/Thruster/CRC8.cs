@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StatusConsole {
+namespace StatusConsole.Thruster
+{
     ///
     /// This enum is used to indicate what kind of checksum you will be calculating.
     /// 
-    public enum CRC8_POLY {
+    public enum CRC8_POLY
+    {
         CRC8 = 0xd5,
         CRC8_CCITT = 0x07,
         CRC8_DALLAS_MAXIM = 0x31,
@@ -19,41 +21,53 @@ namespace StatusConsole {
     /// 
     /// Class for calculating CRC8 checksums...
     /// 
-    public class CRC8Calc {
+    public class CRC8Calc
+    {
         private byte[] table = new byte[256];
 
-        public byte Checksum(params byte[] val) {
+        public byte Checksum(params byte[] val)
+        {
             if (val == null)
                 throw new ArgumentNullException("val");
 
             byte c = 0;
 
-            foreach (byte b in val) {
+            foreach (byte b in val)
+            {
                 c = table[c ^ b];
             }
 
             return c;
         }
 
-        public byte[] Table {
-            get {
-                return this.table;
+        public byte[] Table
+        {
+            get
+            {
+                return table;
             }
-            set {
-                this.table = value;
+            set
+            {
+                table = value;
             }
         }
 
-        public byte[] GenerateTable(CRC8_POLY polynomial) {
+        public byte[] GenerateTable(CRC8_POLY polynomial)
+        {
             byte[] csTable = new byte[256];
 
-            for (int i = 0; i < 256; ++i) {
+            for (int i = 0; i < 256; ++i)
+            {
                 int curr = i;
 
-                for (int j = 0; j < 8; ++j) {
-                    if ((curr & 0x80) != 0) {
-                        curr = (curr << 1) ^ (int)polynomial;
-                    } else {
+                for (int j = 0; j < 8; ++j)
+                {
+                    if ((curr & 0x80) != 0)
+                    {
+                        curr = curr << 1 ^ (int)polynomial;
+                    }
+                    else
+                    {
                         curr <<= 1;
                     }
                 }
@@ -64,8 +78,9 @@ namespace StatusConsole {
             return csTable;
         }
 
-        public CRC8Calc(CRC8_POLY polynomial) {
-            this.table = this.GenerateTable(polynomial);
+        public CRC8Calc(CRC8_POLY polynomial)
+        {
+            table = GenerateTable(polynomial);
         }
     }
 }
