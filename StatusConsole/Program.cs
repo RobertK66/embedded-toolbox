@@ -113,6 +113,10 @@ namespace StatusConsole {
                 var uartScreen = new MyUartScreen(myLock, backgroundColor, textColor, timeColor);
                 inputListeners.Add(uartScreen);
                 TextBox textBox = new TextBox();
+
+                //ISerialProtocol prot = 
+
+
                 uartService.SetScreen(uartScreen);
 
                 tabPanel.AddTab(name, new Boundary {
@@ -209,8 +213,8 @@ namespace StatusConsole {
         private void CommandCallback(string command) {
             _Log.LogDebug("Command " + command);
             var s = uartServices.GetCurrentService();
-            byte[] toSend  = s.ProcessCommand(command);
-            s.SendUart(toSend, toSend.Length);
+            s.ProcessCommand(command);
+            //s.SendUart(toSend, toSend.Length);
         }
 
     }

@@ -17,6 +17,6 @@ namespace StatusConsole {
 
         string GetInterfaceName();
         bool IsConnected();
-        byte[] ProcessCommand(String s);
+        void ProcessCommand(String s);
     }
 }

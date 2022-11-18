@@ -1,5 +1,4 @@
 ﻿using System;
-using StatusConsole.OBC;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace StatusConsole.OBC {
+namespace StatusConsole.OBC
+{
 
     enum L2Status {
         IDLE,
@@ -15,14 +15,14 @@ namespace StatusConsole.OBC {
         DATA
     }
 
-    public class ObcDebug {
+    public class ObcDebug :ISerialProtocol{
         L2Status Status = L2Status.IDLE;
         Byte[] rxData = new Byte[1000];
         int rxIdx = 0;
         private IOutputWrapper screen;
         private ILogger Log;
         private EventFactory eventFactory;
-
+        private ITtyService tty;
 
         public ObcDebug(IConfigurationSection debugConfig, IOutputWrapper screen, ILogger log) {
             this.screen = screen;
@@ -30,7 +30,12 @@ namespace StatusConsole.OBC {
             eventFactory = new EventFactory(debugConfig);
         }
 
-        internal void ProcessByte(int dataByte) {
+        public ObcDebug() {
+
+        }
+
+
+        public void ProcessByte(byte dataByte) {
             switch (Status) {
                 case L2Status.IDLE:
                     if (dataByte == 0x7E) {
@@ -214,7 +219,16 @@ namespace StatusConsole.OBC {
             return moduleNr.ToString();
         }
 
+        public void SetScreen(IConfigurationSection debugConfig, IOutputWrapper scr, ILogger log, ITtyService tty) {
+            this.screen = scr;
+            this.Log = log;
+            eventFactory = new EventFactory(debugConfig);
+            this.tty = tty;
+        }
 
-
+        public void ProcessCommand(string cmd) {
+            tty.SendUart(Encoding.ASCII.GetBytes(cmd + "\n"), cmd.Length + 1);
+            //Port.Write(Encoding.ASCII.GetBytes(cmd + Port.NewLine), 0, (s + Port.NewLine).Length);
+        }
     }
 }

@@ -113,7 +113,7 @@ namespace StatusConsole {
             throw new NotImplementedException();
         }
 
-        public byte[] ProcessCommand(string s) {
+        public void ProcessCommand(string s) {
             throw new NotImplementedException();
         }
     }

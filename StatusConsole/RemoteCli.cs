@@ -153,9 +153,9 @@ namespace StatusConsole {
             return Continue;
         }
 
-        public byte[] ProcessCommand(string s) {
+        public void ProcessCommand(string s) {
             byte[] data = Encoding.UTF8.GetBytes(s);
-            return data;
+            //return data;
         }
 
         public void SendUart(byte[] toSend, int len) {

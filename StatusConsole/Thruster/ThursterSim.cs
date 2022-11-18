@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace StatusConsole.Thruster {
 
-    public class ThrusterSim {
+    public class ThrusterSim :ISerialProtocol {
 
-        enum msgtype {
+        enum Msgtype {
             OK = 1, 
             ERROR,
             READ,
@@ -24,14 +24,14 @@ namespace StatusConsole.Thruster {
 
         private IConfigurationSection thrConfig;
         private IOutputWrapper screen;
-        private ILogger log;
+        private ILogger Log;
         private ITtyService tty;
         private CRC8Calc crcCalculator;
 
         private byte thrusterAdress = 0x01;             // TODO: config....
         private int rxIdx  = 0;
         private bool ignoreMessage = false;
-        private msgtype currentMsg;
+        private Msgtype currentMsg;
         private byte currentCRC;
         private UInt16 currentPayloadLen;
         private byte[] currentPayload = new byte[1000];
@@ -42,7 +42,7 @@ namespace StatusConsole.Thruster {
         public ThrusterSim(IConfigurationSection thrConfig, IOutputWrapper screen, ILogger log, ITtyService tty) {
             this.thrConfig = thrConfig;
             this.screen = screen;
-            this.log = log;
+            this.Log = log;
             this.tty = tty;
             this.crcCalculator = new CRC8Calc(CRC8_POLY.CRC8_CCITT);
             rxIdx = 0;
@@ -51,14 +51,23 @@ namespace StatusConsole.Thruster {
             }
         }
 
-        internal void ProcessByte(int b) {
+        public ThrusterSim() {
+            this.crcCalculator = new CRC8Calc(CRC8_POLY.CRC8_CCITT);
+            rxIdx = 0;
+            for (int i = 0; i < 0xFF; i++) {
+                currentRegisterValues[i] = (byte)i;
+            }
+        }
+
+
+        public void ProcessByte(byte b) {
             switch (rxIdx) {
                 case 0:   // sender adress
                     if (b == 0) {
                         // Sender always has to be 0
                         rxIdx++;
                     } else {
-                        log.LogError("received msg does not start with Adr 0x00!");
+                        Log.LogError("received msg does not start with Adr 0x00!");
                         rxIdx = 0; //-1; // Error !?ComState.Error;
                     }
                     break;
@@ -67,11 +76,12 @@ namespace StatusConsole.Thruster {
                     if ((b == 0xff) || (b == thrusterAdress)) {
                         ignoreMessage = false;
                     } else {
+                        // The message is adressed to another slave.
                         ignoreMessage = true;
                     }
                     break;
                 case 2:  // messageType
-                    currentMsg = (msgtype)b;
+                    currentMsg = (Msgtype)b;
                     rxIdx++;
                     break;
                 case 3:  // CRC8 
@@ -105,21 +115,22 @@ namespace StatusConsole.Thruster {
             }
         }
 
-        private void processMessage(msgtype currentMsg, ushort currentPayloadLen, byte[] currentPayload = null) {
+        private void processMessage(Msgtype currentMsg, ushort currentPayloadLen, byte[] currentPayload = null) {
             // TODO CRC Check
             screen.Write("Msg: " + currentMsg.ToString());
             switch (currentMsg) {
-                case msgtype.READ:
+                case Msgtype.READ:
                     int offset = currentPayload[0];
                     int lenToread = currentPayload[1];
                     screen.WriteLine(String.Format(" - baseAdr: {0}, len: {1}", offset, lenToread));
                     SendReadAnswer(offset, lenToread);
                     break;
-                case msgtype.WRITE:
+                case Msgtype.WRITE:
                     int offset2 = currentPayload[0];
-                    int lenTorwrite= currentPayload[1];
-                    screen.WriteLine(String.Format(" - baseAdr: {0}, len: {1}", offset2, lenTorwrite));
-                    SendWriteAnswer(offset2, lenTorwrite);
+                    int data0 = currentPayload[1];
+                    screen.WriteLine(String.Format(" - baseAdr: {0}, len: {1}, data[0]: {2}", offset2, currentPayloadLen-1, data0));
+                    WriteDataToRegisters(currentPayload, currentPayloadLen);
+                    SendOkAnswer();
                     break;
                 default:
                     screen.WriteLine(String.Format("Not implemented yet"));
@@ -130,11 +141,18 @@ namespace StatusConsole.Thruster {
 
         }
 
-        private void SendWriteAnswer(int offset2, int lenTorwrite) {
+        private void WriteDataToRegisters(byte[] currentPayload, ushort len) {
+            int offset = currentPayload[0];
+                //for (int idx = 1; idx < len; idx++) {
+                //    currentRegisterValues[offset + idx - 1] = currentPayload[idx];
+                //}
+        }
+
+        private void SendOkAnswer() {
             byte[] response = new byte[6];
             response[0] = thrusterAdress;
             response[1] = 0x00;     // Master (OBC) address 
-            response[2] = (byte)msgtype.OK;
+            response[2] = (byte)Msgtype.OK;
             response[3] = 0x00;     //CRC8
             response[4] = 0x00;     
             response[5] = 0x00;
@@ -145,7 +163,7 @@ namespace StatusConsole.Thruster {
             byte[] response = new byte[6+lenToRead];
             response[0] = thrusterAdress;
             response[1] = 0x00;     // Master (OBC) address 
-            response[2] = (byte)msgtype.DATA;
+            response[2] = (byte)Msgtype.DATA;
             response[3] = 0x00;     //CRC8
             response[4] = (byte)(lenToRead & 0x00FF);       //LSB
             response[5] = (byte)((lenToRead>>8) & 0x00FF);  //MSB
@@ -164,6 +182,17 @@ namespace StatusConsole.Thruster {
 
 
 
+        }
+
+        public void SetScreen(IConfigurationSection debugConfig, IOutputWrapper screen, ILogger log, ITtyService tts) {
+            thrConfig = debugConfig;
+            this.screen = screen;
+            Log = log;
+            tty = tts; 
+        }
+
+        public void ProcessCommand(string cmd) {
+            //throw new NotImplementedException();
         }
     }       
 }

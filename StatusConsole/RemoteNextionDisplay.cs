@@ -214,7 +214,7 @@ namespace StatusConsole {
             throw new NotImplementedException();
         }
 
-        byte[] ITtyService.ProcessCommand(string s) {
+        void ITtyService.ProcessCommand(string s) {
             throw new NotImplementedException();
         }
     }

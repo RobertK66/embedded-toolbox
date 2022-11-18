@@ -50,6 +50,7 @@ namespace StatusConsole {
                 Port.DataBits = 8;
                 Port.StopBits = StopBits.One;
                 Port.Handshake = Handshake.None;
+                Port.Encoding= Encoding.ASCII;
                 Port.Open();
                 Port.DtrEnable = true;
                 Port.NewLine = Config?.GetValue<String>("NewLine") ?? "\r";
@@ -92,8 +93,8 @@ namespace StatusConsole {
 
         abstract public void Read(SerialPort port);
 
-        virtual public byte[] ProcessCommand(String s) {
-            return Encoding.ASCII.GetBytes(s + Port.NewLine);
-        }
+        virtual public void ProcessCommand(String s) { }
+        //    //return Encoding.ASCII.GetBytes(s + Port.NewLine);
+        //}
     }
 }
