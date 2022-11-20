@@ -18,7 +18,7 @@ using StatusConsole.Controls;
 using ConsoleGUI.Api;
 using StatusConsole.Logger;
 using Serilog;
-using StatusConsole.GPS;
+
 
 namespace StatusConsole {
 

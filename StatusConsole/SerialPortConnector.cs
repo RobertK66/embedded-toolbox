@@ -23,7 +23,7 @@ namespace StatusConsole {
 
             // Here we Instanciate the configured protocol for this Serial Connector. If there is an protocol config section declared we pass it on to the 
             // ISerialProtocol constructor.
-            string typeName = Config?.GetValue<String>("ProtClass") ?? "dummyClass";
+            string typeName = Config?.GetValue<String>("ProtClass") ?? "StatusConsole.DefaultCli";
 
             try {
                 String configName = Config?.GetValue<String>("ProtConfig")??"dummyCfg";
@@ -44,14 +44,18 @@ namespace StatusConsole {
             // Set the event Handler to receive the bytes
             port.DataReceived += (s, e) => {
                 if (e.EventType == SerialData.Chars) {
-                    SerialPort sp = (SerialPort)s;
-                    while (sp.BytesToRead > 0) {
-                        var b = sp.ReadByte();
-                        if (b>=0) {
-                            Log?.LogTrace("Rx: {@mycharHex} '{@mychar}'", "0x" + b.ToString("X2"), (b == '\n') ? ' ' : b);
-                            protocol.ProcessByte((byte)b);
-                        }
-                    };
+                    try {
+                        SerialPort sp = (SerialPort)s;
+                        while (sp.BytesToRead > 0) {
+                            var b = sp.ReadByte();
+                            if (b >= 0) {
+                                Log?.LogTrace("Rx: {@mycharHex} '{@mychar}'", "0x" + b.ToString("X2"), (b == '\n') ? ' ' : b);
+                                protocol.ProcessByte((byte)b);
+                            }
+                        };
+                    } catch(Exception ex) {
+                        Log?.LogError("Rx error using SerialPort in event handler. " + this.Config.Key, ex);
+                    }
                 }
             };
 

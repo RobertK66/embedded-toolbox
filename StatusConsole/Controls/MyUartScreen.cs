@@ -31,7 +31,11 @@ namespace StatusConsole.Controls {
         }
 
         public void WriteData(byte[] buffer, int bytesRead) {
-            Add(buffer.ToString(), textColor);
+            String dataline = "";
+            foreach (byte b in buffer ) {
+                dataline += " "+ b.ToString("X2");
+            }
+            Add(dataline, textColor);
         }
 
         public void WriteLine(string v) {
