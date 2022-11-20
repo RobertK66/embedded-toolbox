@@ -51,9 +51,9 @@ namespace StatusConsole {
             return IfName;
         }
 
-        IConfigurationSection ITtyService.GetScreenConfig() {
-            return screenConfig;
-        }
+        //IConfigurationSection ITtyService.GetScreenConfig() {
+        //    return screenConfig;
+        //}
 
         // TODO: refactor ....
         public void SetScreen(IOutputWrapper scr) {
@@ -163,6 +163,10 @@ namespace StatusConsole {
             if (IsConnected()) {
                 socket.Send(toSend, len, SocketFlags.None);
             }
+        }
+
+        public string GetViewName() {
+            throw new NotImplementedException();
         }
     }
 }

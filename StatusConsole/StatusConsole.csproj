@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ClimbPlugins\ClimbPlugins.csproj" />
     <ProjectReference Include="..\StatusConsoleApi\StatusConsoleApi.csproj" />
     <ProjectReference Include="..\StatusConsolePlugins\StatusConsolePlugins.csproj" />
   </ItemGroup>

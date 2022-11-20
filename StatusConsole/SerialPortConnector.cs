@@ -22,32 +22,40 @@ namespace StatusConsole {
         override public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger) {
             base.Initialize(cs, rootConfig, logger);
 
-            // The value of "ImplsConfigSection" has the name of another Config Section, which we have to search for in the whole appsettings config....
-            // TODO: Refactor the main app setting, appstart and hierachies of classes and IOC and so on......
-
             // Here we Instanciate the configured protocol for this Serial Connector. If there is an protocol config section declared we pass it on to the 
             // ISerialProtocol constructor.
-            string typeName = Config?.GetValue<String>("ProtClass") ?? "dummy";
-            Type type = null;
+            string typeName = Config?.GetValue<String>("ProtClass") ?? "dummyClass";
+
             try {
-                type = Type.GetType(typeName, true);
-            } catch (Exception ex) {
-                String pluginPath = AppDomain.CurrentDomain.BaseDirectory + "StatusConsolePlugins.dll";
-                Assembly plugins = AssemblyLoadContext.Default.LoadFromAssemblyPath(pluginPath);
-                type = plugins.ExportedTypes.Where(t => t.FullName == typeName).FirstOrDefault();
+                String configName = Config?.GetValue<String>("ProtConfig")??"dummyCfg";
+                IConfigurationSection pluginConfig = rootConfig.GetSection(configName);
+                protocol = PluginSystem.LoadPlugin<ISerialProtocol>(typeName, pluginConfig);
+            } catch(Exception ex) {
+                throw new ApplicationException("Protocol Class (" + typeName + ") not found for '" + cs.Path + "' ");
             }
 
-            if (type != null) {
-                // Create an Instance of the protocol class and pass it its config if available.
-                IConfigurationSection protConfig = null;
-                String configName = Config?.GetValue<String>("ProtConfig");
-                if (configName != null) {
-                    protConfig = rootConfig?.GetSection(configName);
-                }
-                protocol = (ISerialProtocol)Activator.CreateInstance(type, new object[] { protConfig });
-            } else {
-                throw new ApplicationException("Protocol Class ("+typeName+") not found for '" + cs.Path + "' ");
-            }
+
+
+            //Type type = null;
+            //try {
+            //    type = Type.GetType(typeName, true);
+            //} catch (Exception ex) {
+            //    String pluginPath = AppDomain.CurrentDomain.BaseDirectory + "StatusConsolePlugins.dll";
+            //    Assembly plugins = AssemblyLoadContext.Default.LoadFromAssemblyPath(pluginPath);
+            //    type = plugins.ExportedTypes.Where(t => t.FullName == typeName).FirstOrDefault();
+            //}
+
+            //if (type != null) {
+            //    // Create an Instance of the protocol class and pass it its config if available.
+            //    IConfigurationSection protConfig = null;
+            //    String configName = Config?.GetValue<String>("ProtConfig");
+            //    if (configName != null) {
+            //        protConfig = rootConfig?.GetSection(configName);
+            //    }
+            //    protocol = (ISerialProtocol)Activator.CreateInstance(type, new object[] { protConfig });
+            //} else {
+            //    throw new ApplicationException("Protocol Class ("+typeName+") not found for '" + cs.Path + "' ");
+            //}
         }
 
         override public void Read(SerialPort port) {
@@ -99,11 +107,11 @@ namespace StatusConsole {
 
         override public void SetScreen(IOutputWrapper scr) {
             Screen = scr;
-            protocol.SetScreen(null, scr, Log, this);
+            protocol.SetScreen(scr, Log, this);
         }
 
         override public void ProcessCommand(String s) {
-            protocol.ProcessCommand(s);
+            protocol.ProcessUserInput(s);
             //Port.Write(Encoding.ASCII.GetBytes(s + Port.NewLine), 0, (s + Port.NewLine).Length);
         }
 

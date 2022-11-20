@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StatusConsole.Thruster
+namespace ClimbPlugins
 {
     ///
     /// This enum is used to indicate what kind of checksum you will be calculating.

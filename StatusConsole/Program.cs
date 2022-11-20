@@ -88,8 +88,14 @@ namespace StatusConsole {
             foreach (var uartService in services) {
                 
                 string name = uartService.GetInterfaceName();
-                IConfigurationSection cs = uartService.GetScreenConfig();
                 
+
+                //IConfigurationSection cs = uartService.GetScreenConfig();
+                String screenName = uartService.GetViewName();
+
+                IConfigurationSection css = conf.GetSection("SCREENS");
+                IConfigurationSection cs = css.GetSection(screenName);
+
                 int width = cs.GetValue("Width", 80);
                 int heigth = cs.GetValue("Height", 10);
                 if (width > mainX) {
@@ -102,7 +108,7 @@ namespace StatusConsole {
                 
                 ConsoleColor cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue("Background", "Black"));
                 Color backgroundColor = cc.GetGuiColor();
-                cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue("Text", "Whilte"));
+                cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue("Text", "White"));
                 Color textColor = cc.GetGuiColor();
 
                 string time = cs.GetValue("Time", "None");

@@ -28,9 +28,14 @@ namespace StatusConsole {
             return Config.Key;
         }
 
-        IConfigurationSection ITtyService.GetScreenConfig() {
-            return Config.GetSection("Screen");
+        //IConfigurationSection ITtyService.GetScreenConfig() {
+        //    return Config.GetSection("Screen");
+        //}
+
+        String ITtyService.GetViewName() {
+            return Config.GetValue<String>("Screen", "");
         }
+
 
 
         virtual public void SetScreen(IOutputWrapper scr) {

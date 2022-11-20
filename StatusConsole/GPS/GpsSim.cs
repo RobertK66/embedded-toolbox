@@ -83,7 +83,7 @@ namespace StatusConsole.GPS {
     //        return nmeaMessage + Checksum.ToString("X2");
     //    }
 
-    //    public void ProcessCommand(string cmd) {
+    //    public void ProcessUserInput(string cmd) {
     //        if (cmd == "1") {
     //            SendCount = 6;
     //        } else {

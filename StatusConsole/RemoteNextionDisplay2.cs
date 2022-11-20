@@ -37,9 +37,9 @@ namespace StatusConsole {
             return Config.Key;
         }
 
-        IConfigurationSection ITtyService.GetScreenConfig() {
-            return Config.GetSection("Screen");
-        }
+        //IConfigurationSection ITtyService.GetScreenConfig() {
+        //    return Config.GetSection("Screen");
+        //}
 
         Task IHostedService.StartAsync(CancellationToken cancellationToken) {
             try {
@@ -115,6 +115,10 @@ namespace StatusConsole {
         }
 
         public void ProcessCommand(string s) {
+            throw new NotImplementedException();
+        }
+
+        public string GetViewName() {
             throw new NotImplementedException();
         }
     }

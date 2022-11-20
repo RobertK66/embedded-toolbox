@@ -55,9 +55,9 @@ namespace StatusConsole {
             return IfName;
         }
 
-        IConfigurationSection ITtyService.GetScreenConfig() {
-            return screenConfig;
-        }
+        //IConfigurationSection ITtyService.GetScreenConfig() {
+        //    return screenConfig;
+        //}
 
         // TODO: refactor ....
         public void SetScreen(IOutputWrapper scr) {
@@ -200,9 +200,9 @@ namespace StatusConsole {
             return Continue;
         }
 
-        void ITtyService.Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger) {
-            throw new NotImplementedException();
-        }
+        //void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger) {
+        //    throw new NotImplementedException();
+        //}
 
         void ITtyService.SetScreen(IOutputWrapper scr) {
             throw new NotImplementedException();
@@ -217,6 +217,10 @@ namespace StatusConsole {
         }
 
         void ITtyService.ProcessCommand(string s) {
+            throw new NotImplementedException();
+        }
+
+        public string GetViewName() {
             throw new NotImplementedException();
         }
     }

@@ -13,7 +13,8 @@ namespace StatusConsoleApi {
         void SetScreen(IOutputWrapper scr);
         void SendUart(byte[] toSend, int count);
 
-        IConfigurationSection GetScreenConfig();
+        //IConfigurationSection GetScreenConfig();
+        string GetViewName();
 
         string GetInterfaceName();
         bool IsConnected();

@@ -6,8 +6,9 @@ namespace StatusConsoleApi
 {
     public interface ISerialProtocol {
         void ProcessByte(byte b);
-        void ProcessCommand(String cmd);
 
-        void SetScreen(IConfigurationSection debugConfig, IOutputWrapper screen, ILogger log, ITtyService tty);
+
+        void ProcessUserInput(String cmd);
+        void SetScreen(IOutputWrapper screen, ILogger log, ITtyService tty);
     }
 }

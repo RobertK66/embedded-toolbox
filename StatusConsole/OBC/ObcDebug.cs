@@ -220,14 +220,13 @@ namespace StatusConsole.OBC
             return moduleNr.ToString();
         }
 
-        public void SetScreen(IConfigurationSection debugConfig, IOutputWrapper scr, ILogger log, ITtyService tty) {
+        public void SetScreen(IOutputWrapper scr, ILogger log, ITtyService tty) {
             this.screen = scr;
             this.Log = log;
-            //eventFactory = new EventFactory(debugConfig);
             this.tty = tty;
         }
 
-        public void ProcessCommand(string cmd) {
+        public void ProcessUserInput(string cmd) {
             tty.SendUart(Encoding.ASCII.GetBytes(cmd + "\n"), cmd.Length + 1);
             //Port.Write(Encoding.ASCII.GetBytes(cmd + Port.NewLine), 0, (s + Port.NewLine).Length);
         }
