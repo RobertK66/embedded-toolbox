@@ -6,6 +6,7 @@ using System.IO.Ports;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using StatusConsoleApi;
 
 namespace StatusConsole {
     public abstract class SerialPortBase: ITtyService {

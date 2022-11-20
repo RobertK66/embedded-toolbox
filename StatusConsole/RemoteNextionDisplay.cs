@@ -12,6 +12,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using StatusConsoleApi;
+
 namespace StatusConsole {
     //
     // This allows to access a remote socket on hostname:PORTNR 

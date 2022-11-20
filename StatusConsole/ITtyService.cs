@@ -8,15 +8,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace StatusConsole {
-    public interface ITtyService : IHostedService {
-        void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger? logger);
-        void SetScreen(IOutputWrapper scr);
-        void SendUart(byte[] toSend, int count);
+    //public interface ITtyService : IHostedService {
+    //    void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger? logger);
+    //    void SetScreen(IOutputWrapper scr);
+    //    void SendUart(byte[] toSend, int count);
 
-        IConfigurationSection GetScreenConfig();
+    //    IConfigurationSection GetScreenConfig();
 
-        string GetInterfaceName();
-        bool IsConnected();
-        void ProcessCommand(String s);
-    }
+    //    string GetInterfaceName();
+    //    bool IsConnected();
+    //    void ProcessCommand(String s);
+    //}
 }

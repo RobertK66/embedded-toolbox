@@ -7,11 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace StatusConsole {
-    public interface IConfigurableServices : IEnumerable<ITtyService>, IHostedService {
-        Dictionary<string, ITtyService> GetTtyServices();
-        ITtyService GetCurrentService();
-        ITtyService GetNextService();
+    //public interface IConfigurableServices : IEnumerable<ITtyService>, IHostedService {
+    //    Dictionary<string, ITtyService> GetTtyServices();
+    //    ITtyService GetCurrentService();
+    //    ITtyService GetNextService();
 
-        void SwitchCurrentService(int idx);
-    }
+    //    void SwitchCurrentService(int idx);
+    //}
 }

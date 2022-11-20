@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using StatusConsoleApi;
 
 namespace StatusConsole {
     public class SerialPortConnector : SerialPortBase {
@@ -26,7 +28,15 @@ namespace StatusConsole {
             // Here we Instanciate the configured protocol for this Serial Connector. If there is an protocol config section declared we pass it on to the 
             // ISerialProtocol constructor.
             string typeName = Config?.GetValue<String>("ProtClass") ?? "dummy";
-            var type = Type.GetType(typeName);
+            Type type = null;
+            try {
+                type = Type.GetType(typeName, true);
+            } catch (Exception ex) {
+                String pluginPath = AppDomain.CurrentDomain.BaseDirectory + "StatusConsolePlugins.dll";
+                Assembly plugins = AssemblyLoadContext.Default.LoadFromAssemblyPath(pluginPath);
+                type = plugins.ExportedTypes.Where(t => t.FullName == typeName).FirstOrDefault();
+            }
+
             if (type != null) {
                 // Create an Instance of the protocol class and pass it its config if available.
                 IConfigurationSection protConfig = null;

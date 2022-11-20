@@ -20,6 +20,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\StatusConsoleApi\StatusConsoleApi.csproj" />
+    <ProjectReference Include="..\StatusConsolePlugins\StatusConsolePlugins.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="scripts\ComToPort.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -4,10 +4,10 @@ using System;
 
 namespace StatusConsole
 {
-    public interface ISerialProtocol {
-        void ProcessByte(byte b);
-        void ProcessCommand(String cmd);
+    //public interface ISerialProtocol {
+    //    void ProcessByte(byte b);
+    //    void ProcessCommand(String cmd);
 
-        void SetScreen(IConfigurationSection debugConfig, IOutputWrapper screen, ILogger log, ITtyService tty);
-    }
+    //    void SetScreen(IConfigurationSection debugConfig, IOutputWrapper screen, ILogger log, ITtyService tty);
+    //}
 }

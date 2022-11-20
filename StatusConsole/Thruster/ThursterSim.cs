@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StatusConsole.Controls;
+using StatusConsoleApi;
 using System;
 using System.Collections.Generic;
 using System.Linq;
