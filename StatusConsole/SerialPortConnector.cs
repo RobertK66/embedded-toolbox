@@ -17,7 +17,6 @@ namespace StatusConsole {
     public class SerialPortConnector : SerialPortBase {
 
         ISerialProtocol protocol;
-        //IConfigurationSection protConfig;
 
         override public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger) {
             base.Initialize(cs, rootConfig, logger);
@@ -33,29 +32,6 @@ namespace StatusConsole {
             } catch(Exception ex) {
                 throw new ApplicationException("Protocol Class (" + typeName + ") not found for '" + cs.Path + "' ");
             }
-
-
-
-            //Type type = null;
-            //try {
-            //    type = Type.GetType(typeName, true);
-            //} catch (Exception ex) {
-            //    String pluginPath = AppDomain.CurrentDomain.BaseDirectory + "StatusConsolePlugins.dll";
-            //    Assembly plugins = AssemblyLoadContext.Default.LoadFromAssemblyPath(pluginPath);
-            //    type = plugins.ExportedTypes.Where(t => t.FullName == typeName).FirstOrDefault();
-            //}
-
-            //if (type != null) {
-            //    // Create an Instance of the protocol class and pass it its config if available.
-            //    IConfigurationSection protConfig = null;
-            //    String configName = Config?.GetValue<String>("ProtConfig");
-            //    if (configName != null) {
-            //        protConfig = rootConfig?.GetSection(configName);
-            //    }
-            //    protocol = (ISerialProtocol)Activator.CreateInstance(type, new object[] { protConfig });
-            //} else {
-            //    throw new ApplicationException("Protocol Class ("+typeName+") not found for '" + cs.Path + "' ");
-            //}
         }
 
         override public void Read(SerialPort port) {

@@ -106,9 +106,9 @@ namespace StatusConsole {
                     mainY = heigth;
                 }
                 
-                ConsoleColor cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue("Background", "Black"));
+                ConsoleColor cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue<String>("Background",null)??"Black");
                 Color backgroundColor = cc.GetGuiColor();
-                cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue("Text", "White"));
+                cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue<String>("Text",null)??"White");
                 Color textColor = cc.GetGuiColor();
 
                 string time = cs.GetValue("Time", "None");

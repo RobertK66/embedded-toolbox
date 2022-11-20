@@ -16,15 +16,14 @@ namespace StatusConsole {
         internal static T LoadPlugin<T>(string typeName, IConfigurationSection config) {
             T newInstance;
 
-            if (!loaded) {
-                LoadPluginAssemblies();
-            }
-
             Type type = null;
             try {
                 type = Type.GetType(typeName);
-                if (type == null) { 
-                    foreach(Assembly assembly in LoadedAssemblies) {
+                if (type == null) {
+                    if (!loaded) {
+                        LoadPluginAssemblies();
+                    }
+                    foreach (Assembly assembly in LoadedAssemblies) {
                         type = assembly.ExportedTypes.Where(t => t.FullName == typeName).FirstOrDefault();
                         if (type != null) {
                             break;
