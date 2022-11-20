@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace StatusConsole.OBC {
+namespace ClimbPlugins.OBC {
     internal class RawDataEvent : ObcEvent {
         public RawDataEvent(byte[] data, int len) : base(data, len) {
             if (len > 2) {

@@ -1,4 +1,4 @@
-﻿namespace StatusConsole.OBC {
+﻿namespace ClimbPlugins.OBC {
     internal class SdcUnimplementedEvent : ObcEvent {
         public SdcUnimplementedEvent(byte[] data, int len) : base(data, len) {
             if (len == 6) {

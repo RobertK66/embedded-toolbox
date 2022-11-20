@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StatusConsoleApi;
 
-namespace StatusConsole.OBC
+namespace ClimbPlugins.OBC
 {
 
     enum L2Status {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace StatusConsole.OBC {
+namespace ClimbPlugins.OBC {
     public class TimerInitEvent : ObcEvent {
         public TimerInitEvent(byte[] data, int len) : base(data, len) {
             if (len == 18) {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace StatusConsole.OBC {
+namespace ClimbPlugins.OBC {
     public class MemoryOperationalEvent : ObcEvent {
         public MemoryOperationalEvent(byte[] data, int len) : base(data, len) {
             if (len == 20) {

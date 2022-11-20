@@ -1,4 +1,4 @@
-﻿namespace StatusConsole.OBC {
+﻿namespace ClimbPlugins.OBC {
     internal class SdcStatusEvent : ObcEvent {
 
         // Enums from OBC Software

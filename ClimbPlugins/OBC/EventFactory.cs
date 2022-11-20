@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StatusConsole.OBC
+namespace ClimbPlugins.OBC
 {
 
     public class ParDef

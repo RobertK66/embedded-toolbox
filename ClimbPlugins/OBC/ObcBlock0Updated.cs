@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace StatusConsole.OBC {
+namespace ClimbPlugins.OBC {
     public class ObcBlock0UpdatedEvent : ObcEvent {
         public ObcBlock0UpdatedEvent(byte[] data, int len) : base(data, len) {
             MyText = $"{severity}: M-{moduleNr} E-{eventNr} ";

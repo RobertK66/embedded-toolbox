@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StatusConsole.OBC {
+namespace ClimbPlugins.OBC {
     public enum EventSeverity {
         INFO = 0,
         WARNING = 1,

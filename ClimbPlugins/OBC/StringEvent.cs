@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace StatusConsole.OBC {
+namespace ClimbPlugins.OBC {
     internal class StringEvent : ObcEvent {
         public StringEvent(byte[] data, int len) : base(data, len) {
             if (len > 2) {
