@@ -44,14 +44,14 @@ namespace StatusConsole {
         }
 
         private static void LoadPluginAssemblies() {
-            // TODO: search all real plugins (not build with project dependencies) ....
-
-
+            
+            // The plugin dlls build with this project can be loaded by Name (even if the app is distributed as single exe file!)
             LoadedAssemblies.Add(AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName("StatusConsolePlugins")));
             LoadedAssemblies.Add(AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName("ClimbPlugins")));
 
-            //LoadedAssemblies.Add(AssemblyLoadContext.Default.LoadFromAssemblyPath(AppDomain.CurrentDomain.BaseDirectory + "StatusConsolePlugins.dll"));
-            //LoadedAssemblies.Add(AssemblyLoadContext.Default.LoadFromAssemblyPath(AppDomain.CurrentDomain.BaseDirectory + "ClimbPlugins.dll"));
+            // TODO: search all real extension plugin dlls ion some configured(?) directory ........
+            // LoadedAssemblies.Add(AssemblyLoadContext.Default.LoadFromAssemblyPath(""+"ClimbPlugins"));
+
             loaded = true;
         }
     }

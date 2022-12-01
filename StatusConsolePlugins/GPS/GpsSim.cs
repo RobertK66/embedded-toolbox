@@ -55,7 +55,7 @@ namespace StatusConsolePlugins.GPS {
                     //Continue = false;
                 }
             }
-            //Screen?.WriteLine("Send Timer  terminated");
+            //Screen?.WriteLine("Send Timer  terminated");  
 
         }
 

@@ -24,10 +24,11 @@ namespace StatusConsole {
 
     public class Program : IHostedService
     {
-        public async static Task<int> Main(string[] args) {
+        private static String myLock = "55";
+        private static LogPanel myLogPanel = new(myLock, ConsoleColor.Blue.GetGuiColor());
 
-            
-          
+        public async static Task<int> Main(string[] args) {
+                      
             var host =  Host.CreateDefaultBuilder()
                        .ConfigureAppConfiguration((hbc, cb) => {
                            // Commandline pars with "--<anyname> <value>" automatically appear as "anyname" pars in the flattened config.
@@ -53,6 +54,7 @@ namespace StatusConsole {
                        });
 
             await host.RunConsoleAsync();
+
             // Switch back colors to leave a usable Console/Cmd window
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
@@ -62,11 +64,10 @@ namespace StatusConsole {
         // Program Instance part
         private ILogger<Program> _Log;
         private readonly IConfigurableServices uartServices;
+        private Thread? tuiThread;
 
         // T(G)UI
         private List<IInputListener> inputListeners = new List<IInputListener>();
-        private static String myLock = "55";
-        private static LogPanel myLogPanel = new(myLock, ConsoleColor.Blue.GetGuiColor());
         private IControl mainwin = null;
         private TabPanel tabPanel = new();
         private MyInputController myInputController = new MyInputController();
@@ -74,23 +75,19 @@ namespace StatusConsole {
         private int mainX = 0;
         private int mainY = 0;
 
-
+        // As a 'hosted service', constructor of Program gets called by host with DI-resolved logger and services
+        // We do generate and 'wire up' all UI components for each (Uart)service here.
         public Program(IConfiguration conf, ILogger<Program> logger , IConfigurableServices services) {
             _Log = logger;
             _Log.LogDebug("Program() Constructor called.");
 
             uartServices = services;
-            //myInputController = new MyInputController();
             myFunctionController = new MyFunctionController(services);
-      
            
             bool tabAvailable = false;
             foreach (var uartService in services) {
                 
                 string name = uartService.GetInterfaceName();
-                
-
-                //IConfigurationSection cs = uartService.GetScreenConfig();
                 String screenName = uartService.GetViewName();
 
                 IConfigurationSection css = conf.GetSection("SCREENS");
@@ -100,7 +97,6 @@ namespace StatusConsole {
                 int heigth = cs.GetValue("Height", 10);
                 if (width > mainX) {
                     mainX = width;
-                    
                 }
                 if (heigth > mainY) {
                     mainY = heigth;
@@ -111,21 +107,15 @@ namespace StatusConsole {
                 cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), cs.GetValue<String>("Text",null)??"White");
                 Color textColor = cc.GetGuiColor();
 
-                string time = cs.GetValue("Time", "None");
+                String time = cs.GetValue("Time", "None")??"None";
                 Color? timeColor = null;
                 if (time != "None") {
                     cc = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), time);
                     timeColor = cc.GetGuiColor();
                 }
-
-
                 var uartScreen = new MyUartScreen(myLock, backgroundColor, textColor, timeColor);
                 inputListeners.Add(uartScreen);
                 TextBox textBox = new TextBox();
-
-                //ISerialProtocol prot = 
-
-
                 uartService.SetScreen(uartScreen);
 
                 tabPanel.AddTab(name, new Boundary {
@@ -146,7 +136,7 @@ namespace StatusConsole {
                     }
                 }, backgroundColor, new Color(128, 128, 128), textColor);
                 tabAvailable = true;
-                myInputController.AddCommandLine(textBox, CommandCallback);
+                myInputController.AddCommandLine(textBox, uartService.ProcessCommand);
                 myFunctionController.AddUartScreen(name, uartScreen);
                 _Log.LogTrace($"Screen with {width}x{heigth} added -> {mainX}x{mainY}");
             }
@@ -165,19 +155,15 @@ namespace StatusConsole {
                 },
                 FillingControl = tabPanel
             };
-
-
         }
 
         private void TabPanel_TabSwitched(object sender, TabSwitchedArgs e) {
             myInputController.SetActive(e.selectedIdx);
             uartServices.SwitchCurrentService(e.selectedIdx);
-            
         }
 
-        private Thread? tuiThread;
      
-
+        // This gets called by host - after Constructor.
         public async Task StartAsync(CancellationToken cancellationToken) {
             _Log.LogDebug("Program StartAsync called");
 
@@ -191,20 +177,30 @@ namespace StatusConsole {
             inputListeners.Insert(1, myInputController);
             inputListeners.Insert(2, myFunctionController);
 
+            // We start the UI thread which takes care of the Console Input.
             tuiThread = new Thread(new ThreadStart(TuiThread));
             tuiThread.Start();
 
+            // The single uartService Objects are POCOs (generated from Config and not DI!).
+            // Here we add them manually to the 'StartAsync' cadence of the host.
             foreach (var uartService in uartServices) {
                 await uartService.StartAsync(cancellationToken);
             }
         }
 
+        // When host wants to stop we do wait for all uartServices to stop here.
         public async Task StopAsync(CancellationToken cancellationToken) {
             _Log.LogDebug("Program StopAsync called");
             // Stop all UART Coms
             await uartServices.ForEachAsync(uart => uart.StopAsync(cancellationToken));
+            tuiThread?.Interrupt();
+            while (tuiThread?.IsAlive??false) {
+                Thread.Sleep(20);
+            }
             // Clear all content and switch color of Console for usage after this Program ....
             ConsoleManager.Content = new Style() { Background = Color.Black, Foreground = Color.White };
+            //Console.WriteLine("");
+            //Console.WriteLine("Program StopAsync finished");
         }
 
         private void TuiThread() {
@@ -218,14 +214,6 @@ namespace StatusConsole {
                 _Log.LogDebug("TUI Thread canceled by InterruptException");
             }
         }
-
-        private void CommandCallback(string command) {
-            _Log.LogDebug("Command " + command);
-            var s = uartServices.GetCurrentService();
-            s.ProcessCommand(command);
-            //s.SendUart(toSend, toSend.Length);
-        }
-
     }
 
 }

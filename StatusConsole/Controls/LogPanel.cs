@@ -13,7 +13,7 @@ using System.Collections.Generic;
 public class LogPanel : SimpleControl, IInputListener {
 	private readonly VerticalStackPanel _stackPanel;
 	private readonly VerticalScrollPanel _scrollPanel;
-	private readonly Object monitorObject;
+	protected readonly Object monitorObject;
     private Color? timeColor = ConsoleColor.Blue.GetGuiColor();
 
 	public LogPanel(Object monitor, Color? timeCol = null)  {

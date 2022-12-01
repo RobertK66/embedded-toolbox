@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace StatusConsoleApi {
     public interface ITtyService : IHostedService {
-        void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger? logger);
+        void Initialize(IConfigurationSection cs, IConfiguration? rootConfig, ILogger? logger);
         void SetScreen(IOutputWrapper scr);
         void SendUart(byte[] toSend, int count);
 
@@ -19,5 +19,6 @@ namespace StatusConsoleApi {
         string GetInterfaceName();
         bool IsConnected();
         void ProcessCommand(String s);
+        //void CommandCallback(string obj);
     }
 }
