@@ -13,21 +13,23 @@ namespace StatusConsolePlugins.GPS {
 
     public class GpsSim : ISerialProtocol {
 
-        private IConfigurationSection? thrConfig;
+        private readonly IConfigurationSection? myConfig;
         private IOutputWrapper? Screen;
         private ILogger? Log;
         private ITtyService? tty;
-
-        Task Simulator;
+#pragma warning disable IDE0052 // Ungelesene private Member entfernen
+        private readonly Task Simulator;
+#pragma warning restore IDE0052 // Ungelesene private Member entfernen
         volatile int SendCount = 0;
      
         // This constructor is called by the 'plugin System' when somb. is configured to use this 'protocol Class'
         public GpsSim(IConfigurationSection config) {
             // Start our background sim thread
             Simulator = Task.Run(() => SendTimer());
+            myConfig = config;
         }
 
-        public void SetScreen(IOutputWrapper screen, Microsoft.Extensions.Logging.ILogger log, ITtyService tty) {
+        public void SetScreen(IOutputWrapper screen, Microsoft.Extensions.Logging.ILogger log, ITtyService tty, String cmdTerminator) {
             this.Screen = screen;
             this.Log = log;
             this.tty = tty;
@@ -78,11 +80,11 @@ namespace StatusConsolePlugins.GPS {
 
 
         // Caclulate and append NMEA checksum to message string
-        private string AddCC(string nmeaMessage) {
+        private static string AddCC(string nmeaMessage) {
             int Checksum = 0;
             foreach (char c in nmeaMessage) {
                 if (c != '$' && c != '*') {
-                    Checksum = Checksum ^ c;
+                    Checksum ^= c;
                 }
             }
             return nmeaMessage + Checksum.ToString("X2");

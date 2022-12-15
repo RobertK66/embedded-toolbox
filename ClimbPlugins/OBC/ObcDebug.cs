@@ -20,21 +20,21 @@ namespace ClimbPlugins.OBC
         L2Status Status = L2Status.IDLE;
         Byte[] rxData = new Byte[1000];
         int rxIdx = 0;
-        private IOutputWrapper screen;
-        private ILogger Log;
+        private string cmdTerminator = "\n";
         private EventFactory eventFactory;
-        private ITtyService tty;
+        // Gets initialized by factory after constructor:
+        private ITtyService? tty;
+        private IOutputWrapper? screen;
+        private ILogger? Log;
 
-        public ObcDebug(IConfigurationSection debugConfig, IOutputWrapper screen, ILogger log) {
+        public ObcDebug(IConfigurationSection debugConfig, IOutputWrapper screen, ILogger log) :this(debugConfig) {
             this.screen = screen;
             Log = log;
-            //eventFactory = new EventFactory(debugConfig);
         }
 
         public ObcDebug(IConfigurationSection debugConfig) {
             eventFactory = new EventFactory(debugConfig);
         }
-
 
         public void ProcessByte(byte dataByte) {
             switch (Status) {
@@ -42,12 +42,12 @@ namespace ClimbPlugins.OBC
                     if (dataByte == 0x7E) {
                         Status = L2Status.DATA;
                         rxIdx = 0;
-                        Log.LogTrace("Rx: Frame Start");
+                        Log?.LogTrace("Rx: Frame Start");
                     }
                     break;
                 case L2Status.ESCAPE:
                     rxData[rxIdx++] = (Byte)dataByte;
-                    Log.LogTrace("Rx(e): {@mycharHex}", "0x" + Convert.ToByte(dataByte).ToString("X2"));
+                    Log?.LogTrace("Rx(e): {@mycharHex}", "0x" + Convert.ToByte(dataByte).ToString("X2"));
                     Status = L2Status.DATA;
                     break;
                 case L2Status.DATA:
@@ -56,19 +56,19 @@ namespace ClimbPlugins.OBC
                             // 2 Frame marker without data in between -> This is very likely to be a frame start now!
                             Status = L2Status.DATA;
                             rxIdx = 0;
-                            Log.LogTrace("Rx: Dual 0x7E -> Asume new Frame Start");
+                            Log?.LogTrace("Rx: Dual 0x7E -> Asume new Frame Start");
                         } else {
-                            Log.LogTrace("Rx: Frame End");
+                            Log?.LogTrace("Rx: Frame End");
                             ProcessFrame(rxData, rxIdx);
                             Status = L2Status.IDLE;
                             rxIdx = 0;
                         }
                     } else if (dataByte == 0x7D) {
-                        Log.LogTrace("Rx: Esc");
+                        Log?.LogTrace("Rx: Esc");
                         Status = L2Status.ESCAPE;
                     } else {
                         rxData[rxIdx++] = (Byte)dataByte;
-                        Log.LogTrace("Rx(e): {@mycharHex}", "0x" + Convert.ToByte(dataByte).ToString("X2"));
+                        Log?.LogTrace("Rx(e): {@mycharHex}", "0x" + Convert.ToByte(dataByte).ToString("X2"));
                     }
                     break;
                 default:
@@ -82,10 +82,10 @@ namespace ClimbPlugins.OBC
                 var eventId = (byte)(rxData[1] & 0x3F);
                 var severity = (EventSeverity)((rxData[1] & 0xC0) >> 6);
 
-                Log.LogDebug("Rx: Frame mod:{@moduleId}, ev: {@eventId}, [{@rxData}],len: {@len}", moduleId, eventId, (rxData.AsSpan(0, len).ToArray()), len);
+                Log?.LogDebug("Rx: Frame mod:{@moduleId}, ev: {@eventId}, [{@rxData}],len: {@len}", moduleId, eventId, (rxData.AsSpan(0, len).ToArray()), len);
                 string eventString = eventFactory.GetAsString(moduleId, eventId, rxData, len);
                 if (severity == EventSeverity.INFO) {
-                    screen.WriteLine(eventString);
+                    screen?.WriteLine(eventString);
                 } else {
                     ConsoleColor col = ConsoleColor.Blue;
                     if (severity == EventSeverity.WARNING) {
@@ -93,10 +93,10 @@ namespace ClimbPlugins.OBC
                     } else if (severity == EventSeverity.ERROR) {
                         col = ConsoleColor.Red;
                     }
-                    screen.WriteLine(eventString, col);
+                    screen?.WriteLine(eventString, col);
                 }
             } else {
-                Log.LogError("Fragmented Frame with {@len}.", len);
+                Log?.LogError("Fragmented Frame with {@len}.", len);
                 // No usefull data in this 'frame'.
             }
 
@@ -116,7 +116,7 @@ namespace ClimbPlugins.OBC
         }
 
 
-        public ObcEvent createOBCEvent(Byte[] data, int len) {
+        public ObcEvent? createOBCEvent(Byte[] data, int len) {
             if (len >= 2) {
                 var moduleNr = data[0];
                 string moduleName = translateModuleToName(moduleNr);
@@ -220,14 +220,15 @@ namespace ClimbPlugins.OBC
             return moduleNr.ToString();
         }
 
-        public void SetScreen(IOutputWrapper scr, ILogger log, ITtyService tty) {
+        public void SetScreen(IOutputWrapper scr, ILogger log, ITtyService tty, string cmdTerminate) {
             this.screen = scr;
             this.Log = log;
             this.tty = tty;
+            this.cmdTerminator = cmdTerminate;
         }
 
         public void ProcessUserInput(string cmd) {
-            tty.SendUart(Encoding.ASCII.GetBytes(cmd + "\n"), cmd.Length + 1);
+            tty?.SendUart(Encoding.ASCII.GetBytes(cmd + cmdTerminator), cmd.Length + cmdTerminator.Length);
             //Port.Write(Encoding.ASCII.GetBytes(cmd + Port.NewLine), 0, (s + Port.NewLine).Length);
         }
     }

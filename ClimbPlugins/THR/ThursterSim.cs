@@ -25,11 +25,11 @@ namespace ClimbPlugins.THR
             CONFIG
         }
 
-        private IConfigurationSection thrConfig;
-        private IOutputWrapper screen;
-        private ILogger Log;
-        private ITtyService tty;
-        private CRC8Calc crcCalculator;
+        //private IConfigurationSection thrConfig;
+        private IOutputWrapper? screen;
+        private ILogger? Log;
+        private ITtyService? tty;
+        private readonly CRC8Calc crcCalculator;
 
         private byte thrusterAdress = 0x01;             // TODO: config....
         private int rxIdx = 0;
@@ -37,9 +37,9 @@ namespace ClimbPlugins.THR
         private Msgtype currentMsg;
         private byte currentCRC;
         private ushort currentPayloadLen;
-        private byte[] currentPayload = new byte[1000];
+        private readonly byte[] currentPayload = new byte[1000];
 
-        private byte[] currentRegisterValues = new byte[0xFF];
+        private readonly byte[] currentRegisterValues = new byte[0xFF];
 
         public ThrusterSim(IConfigurationSection config)
         {
@@ -64,7 +64,7 @@ namespace ClimbPlugins.THR
                     }
                     else
                     {
-                        Log.LogError("received msg does not start with Adr 0x00!");
+                        Log?.LogError("received msg does not start with Adr 0x00!");
                         rxIdx = 0; //-1; // Error !?ComState.Error;
                     }
                     break;
@@ -97,7 +97,7 @@ namespace ClimbPlugins.THR
                     if (currentPayloadLen == 0)
                     {
                         // message has no payload -> reception finished. wait for next one.
-                        processMessage(currentMsg, 0);     // RESET/OK or ERROR only
+                        ProcessMessage(currentMsg, 0);     // RESET/OK or ERROR only
                         rxIdx = 0;
                     }
                     rxIdx++;
@@ -110,7 +110,7 @@ namespace ClimbPlugins.THR
                         // Payload finished. wait for next message
                         if (!ignoreMessage)
                         {
-                            processMessage(currentMsg, currentPayloadLen, currentPayload);
+                            ProcessMessage(currentMsg, currentPayloadLen, currentPayload);
                         }
                         rxIdx = 0;
                     }
@@ -118,34 +118,33 @@ namespace ClimbPlugins.THR
             }
         }
 
-        private void processMessage(Msgtype currentMsg, ushort currentPayloadLen, byte[] currentPayload = null)
+        private void ProcessMessage(Msgtype currentMsg, ushort currentPayloadLen, byte[]? currentPayload = null)
         {
             // TODO CRC Check
-            screen.Write("Msg: " + currentMsg.ToString());
-            switch (currentMsg)
-            {
-                case Msgtype.READ:
-                    int offset = currentPayload[0];
-                    int lenToread = currentPayload[1];
-                    screen.Write(string.Format(" - baseAdr: {0}, len: {1}", offset, lenToread));
-                    SendReadAnswer(offset, lenToread);
-                    break;
-                case Msgtype.WRITE:
-                    int offset2 = currentPayload[0];
-                    int data0 = currentPayload[1];
-                    screen.Write(string.Format(" - baseAdr: {0}, len: {1}, data:", offset2, currentPayloadLen - 1));
-                    for (int idx = 1; idx < currentPayloadLen; idx++)
-                    {
-                        screen.Write(" " + currentPayload[idx].ToString("x2"));
-                    }
-                    screen.WriteLine("");
-                    WriteDataToRegisters(currentPayload, currentPayloadLen);
-                    SendOkAnswer();
-                    break;
-                default:
-                    screen.WriteLine(string.Format("Not implemented yet"));
-                    break;
-
+            screen?.Write("Msg: " + currentMsg.ToString());
+            if (currentPayload != null) {
+                switch (currentMsg) {
+                    case Msgtype.READ:
+                        int offset = currentPayload[0];
+                        int lenToread = currentPayload[1];
+                        screen?.Write(string.Format(" - baseAdr: {0}, len: {1}", offset, lenToread));
+                        SendReadAnswer(offset, lenToread);
+                        break;
+                    case Msgtype.WRITE:
+                        int offset2 = currentPayload[0];
+                        //int data0 = currentPayload[1];
+                        screen?.Write(string.Format(" - baseAdr: {0}, len: {1}, data:", offset2, currentPayloadLen - 1));
+                        for (int idx = 1; idx < currentPayloadLen; idx++) {
+                            screen?.Write(" " + currentPayload[idx].ToString("x2"));
+                        }
+                        screen?.WriteLine("");
+                        WriteDataToRegisters(currentPayload, currentPayloadLen);
+                        SendOkAnswer();
+                        break;
+                    default:
+                        screen?.WriteLine(string.Format("Not implemented yet"));
+                        break;
+                }
             }
 
 
@@ -188,15 +187,15 @@ namespace ClimbPlugins.THR
             }
             byte crc = crcCalculator.Checksum(response.Take(lenToRead + 6).ToArray());
             response[3] = crc;
-            screen.WriteLine("-> Send " + lenToRead + " Register Values.");
+            screen?.WriteLine("-> Send " + lenToRead + " Register Values.");
             //for (int i = 0; i < lenToRead+6; i++) {
             //    screen.Write(" " + response[i].ToString("x2"));
             //}
             //screen.WriteLine("");
-            tty.SendUart(response, 6 + lenToRead);
+            tty?.SendUart(response, 6 + lenToRead);
         }
 
-        public void SetScreen(IOutputWrapper screen, ILogger log, ITtyService tts)
+        public void SetScreen(IOutputWrapper screen, ILogger log, ITtyService tts, String cmdTerminator)
         {
             this.screen = screen;
             Log = log;

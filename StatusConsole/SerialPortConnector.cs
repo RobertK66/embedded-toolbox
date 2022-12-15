@@ -15,10 +15,12 @@ namespace StatusConsole {
 
         private SerialPort Port;
         private String OnConnect;
+        private String CmdTerminator;
 
         public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger) {
             Config = cs;
             OnConnect = cs.GetValue<String>("OnConnect", "");
+            CmdTerminator = Config?.GetValue<String>("NewLine") ?? "\r";
             Log = logger;
 
             // Here we Instanciate the configured protocol for this Serial Connector. If there is an protocol config section declared we pass it on to the 
@@ -35,7 +37,7 @@ namespace StatusConsole {
         }
 
         public void SetScreen(IOutputWrapper scr) {
-            protocol.SetScreen(scr, Log, this);
+            protocol.SetScreen(scr, Log, this, CmdTerminator);
         }
 
         public void ProcessCommand(String cl) {
@@ -124,8 +126,11 @@ namespace StatusConsole {
         }
 
         public Task StopAsync(CancellationToken cancellationToken) {
-            Port.Close();
-            Log?.LogInformation(new EventId(0), "Uart {@portname} closed.", Port.PortName);
+            if (Port != null) {
+                Port.DtrEnable = false;
+                Port.Close();
+            }
+            Log?.LogInformation(new EventId(0), "Uart {@portname} closed.", Port?.PortName??"<null>");
             return Task.CompletedTask;
         }
     }

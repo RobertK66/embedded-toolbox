@@ -9,6 +9,6 @@ namespace StatusConsoleApi
 
 
         void ProcessUserInput(String cmd);
-        void SetScreen(IOutputWrapper screen, ILogger log, ITtyService tty);
+        void SetScreen(IOutputWrapper screen, ILogger log, ITtyService tty, string cmdTermination);
     }
 }

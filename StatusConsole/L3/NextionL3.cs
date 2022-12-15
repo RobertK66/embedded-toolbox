@@ -71,7 +71,7 @@ namespace StatusConsole.L3 {
 
         private RxStat Status = RxStat.rx_idle;
 
-        private byte[] Buffer = new byte[500];
+        private readonly byte[] Buffer = new byte[500];
         private int bytesInBuffer = 0;
 
 
@@ -107,7 +107,7 @@ namespace StatusConsole.L3 {
 
 
         private void Nextion_L3PackageReceived(byte[] buffer, int byteCnt) {
-            NextionEventArgs evArgs = new NextionEventArgs();
+            var evArgs = new NextionEventArgs();
 
             if (byteCnt > 0) {  
                 NextionEventId id = (NextionEventId)buffer[0];

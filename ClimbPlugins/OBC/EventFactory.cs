@@ -10,25 +10,25 @@ namespace ClimbPlugins.OBC
 
     public class ParDef
     {
-        public string Name { get; set; }
-        public string Short { get; set; }
-        public string Type { get; set; }
-        public string Format { get; set; }
+        public string Name { get; set; } = "";
+        public string Short { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string Format { get; set; } = "";
     }
 
     public class EventConf
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Short { get; set; }
+        public string Name { get; set; } = "";
+        public string Short { get; set; } = "";
 
         public List<ParDef> Pars { get; set; } = new List<ParDef>();
     }
     public class ModConf
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Short { get; set; }
+        public string Name { get; set; } = "";
+        public string Short { get; set; } = "";
 
         public List<EventConf> Events { get; set; } = new List<EventConf>();
     }
@@ -37,14 +37,14 @@ namespace ClimbPlugins.OBC
     public class EnumValConf
     {
         public int Val { get; set; }
-        public string Name { get; set; }
-        public string Short { get; set; }
+        public string Name { get; set; } = "";
+        public string Short { get; set; } = "";
     }
 
 
     public class EnumConf
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
         public List<EnumValConf> Entries { get; set; } = new List<EnumValConf>();
     }
 
@@ -60,21 +60,20 @@ namespace ClimbPlugins.OBC
             IConfigurationSection ms = debugConfig.GetSection("MODULES");
             var mymods = ms.Get<List<ModConf>>();
 
-            foreach (var m in mymods)
-            {
-                MyModules.Add(m.Id, m);
+            if (mymods != null) {
+                foreach (var m in mymods) {
+                    MyModules.Add(m.Id, m);
+                }
             }
 
             IConfigurationSection enums = debugConfig.GetSection("ENUMS");
             var enumConfigs = enums.Get<List<EnumConf>>();
 
-
-            foreach (var e in enumConfigs)
-            {
-                MyEnums.Add(e.Name, e);
-
+            if (enumConfigs != null) {
+                foreach (var e in enumConfigs) {
+                    MyEnums.Add(e.Name, e);
+                }
             }
-
         }
 
         public string GetAsString(byte moduleId, byte eventId, byte[] rxData, int len)
