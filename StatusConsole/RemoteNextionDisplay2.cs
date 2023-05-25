@@ -41,7 +41,7 @@ namespace StatusConsole {
         //    return Config.GetSection("Screen");
         //}
 
-        Task IHostedService.StartAsync(CancellationToken cancellationToken) {
+        public Task StartAsync(CancellationToken cancellationToken) {
             try {
                 Port = new SerialPort();
                 Port.PortName = Config?.GetValue<String>("ComName") ?? "COM1";
@@ -86,7 +86,7 @@ namespace StatusConsole {
             }
         }
 
-        async Task IHostedService.StopAsync(CancellationToken cancellationToken) {
+        public async Task StopAsync(CancellationToken cancellationToken) {
             // terminate the reader Task.
             Continue = false;
             if (Receiver != null) {
@@ -95,12 +95,6 @@ namespace StatusConsole {
                 Screen.WriteLine("Uart " + Port.PortName + " closed.");
             }
         }
-
-        //void ITtyService.SendUart(string line) {
-        //    if (Continue) {
-        //      Nextion.ConvertAndSendL3CommandLine(line, (d, l) => Port?.Write(d ,0, l));
-        //    }
-        //}
 
         public bool IsConnected() {
             return Continue;

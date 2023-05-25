@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace StatusConsoleApi {
-    public interface ITtyService : IHostedService {
+    public interface ITtyService :IHostedService{
         void Initialize(IConfigurationSection cs, IConfiguration? rootConfig, ILogger? logger);
         void SetScreen(IOutputWrapper scr);
         void SendUart(byte[] toSend, int count);

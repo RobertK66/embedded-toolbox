@@ -60,7 +60,7 @@ namespace StatusConsole {
             Screen = scr;
         }
 
-        Task IHostedService.StartAsync(CancellationToken cancellationToken) {
+        public Task StartAsync(CancellationToken cancellationToken) {
             try {
                 BeginnConnect(HostName, Port);
             } catch (Exception ex) {
@@ -135,7 +135,7 @@ namespace StatusConsole {
             }
         }
 
-        async Task IHostedService.StopAsync(CancellationToken cancellationToken) {
+        public async Task StopAsync(CancellationToken cancellationToken) {
             if (socket != null) {
                 if (socket.Connected) {
                     await socket.DisconnectAsync(false, cancellationToken);

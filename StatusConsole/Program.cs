@@ -28,29 +28,30 @@ namespace StatusConsole {
         private static LogPanel myLogPanel = new(myLock, ConsoleColor.Blue.GetGuiColor());
 
         public async static Task<int> Main(string[] args) {
-                      
+            // This is a Programm runing in a hosted enviroment. So the static Main() configures everything and let the host start the Application.
             var host =  Host.CreateDefaultBuilder()
-                       .ConfigureAppConfiguration((hbc, cb) => {
+                       .ConfigureAppConfiguration((hbc, configBuilder) => {
                            // Commandline pars with "--<anyname> <value>" automatically appear as "anyname" pars in the flattened config.
                            // to also use "-<anyname> <value>" you have to provide the specific mappings here
                            // The example mypar now works with either -mypar ode --mypar !!!
                            Dictionary<string, string> mappings = new Dictionary<string, string>() {
                                 { "-mypar", "mypar" } };
-                           cb.AddCommandLine(args, mappings);
+                           configBuilder.AddCommandLine(args, mappings);
                        })
-                       .ConfigureLogging((hostContext, cl) => {
-                           cl.ClearProviders();             // This avoids default logging output to console.
-                           cl.AddConGuiLogger((con) => {    // This adds our LogPanel as possible target (configure in appsettings.json)
+                       .ConfigureLogging((hbc, loggingBuilder) => {
+                           loggingBuilder.ClearProviders();             // This avoids default logging output to console.
+                           loggingBuilder.AddConGuiLogger((con) => {    // This adds our LogPanel as possible target (configure in appsettings.json)
                                con.LogPanel = myLogPanel;
                            });
-                           cl.AddDebug();                   // This gives Logging in the Debug Console of VS. (configure in appsettings.json)
+                           loggingBuilder.AddDebug();                   // This gives Logging in the Debug Console of VS. (configure in appsettings.json)
                            
                            // This giving possible file logger implementation (serilog). Note Debug and ConGui works without serilog dependency!
-                           cl.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(hostContext.Configuration).CreateLogger());
+                           loggingBuilder.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(hbc.Configuration).CreateLogger());
                        })
-                       .ConfigureServices(services => {
-                           services.AddTransient<IConfigurableServices, MyServiceCollection>();
-                           services.AddHostedService<Program>();
+                       .ConfigureServices(serviceCollection => {
+                           serviceCollection.AddTransient<IConfigurableServices, MyServiceCollection>();
+                           // Assign this Program class as Service -> so we get instanciated and called by Container for startup.....
+                           serviceCollection.AddHostedService<Program>();
                        });
 
             await host.RunConsoleAsync();
@@ -59,11 +60,14 @@ namespace StatusConsole {
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
             return Environment.ExitCode;      
+
         }
+
+
 
         // Program Instance part
         private ILogger<Program> _Log;
-        private readonly IConfigurableServices uartServices;
+        private readonly IConfigurableServices serviceCollection;
         private Thread? tuiThread;
 
         // T(G)UI
@@ -72,16 +76,16 @@ namespace StatusConsole {
         private TabPanel tabPanel = new();
         private MyInputController myInputController = new MyInputController();
         private MyFunctionController? myFunctionController = null;
-        private int mainX = 0;
+        //private int mainX = 0;
         private int mainY = 0;
 
-        // As a 'hosted service', constructor of Program gets called by host with DI-resolved logger and services
+        // As a 'hosted service', constructor of Program gets called by host with DI-resolved logger and serviceCollection
         // We do generate and 'wire up' all UI components for each (Uart)service here.
         public Program(IConfiguration conf, ILogger<Program> logger , IConfigurableServices services) {
             _Log = logger;
             _Log.LogDebug("Program() Constructor called.");
 
-            uartServices = services;
+            serviceCollection = services;
             myFunctionController = new MyFunctionController(services);
            
             bool tabAvailable = false;
@@ -93,11 +97,11 @@ namespace StatusConsole {
                 IConfigurationSection css = conf.GetSection("SCREENS");
                 IConfigurationSection cs = css.GetSection(screenName);
 
-                int width = cs.GetValue("Width", 80);
+                //int width = cs.GetValue("Width", 80);
                 int heigth = cs.GetValue("Height", 10);
-                if (width > mainX) {
-                    mainX = width;
-                }
+                //if (width > mainX) {
+                //    mainX = width;
+                //}
                 if (heigth > mainY) {
                     mainY = heigth;
                 }
@@ -119,7 +123,7 @@ namespace StatusConsole {
                 uartService.SetScreen(uartScreen);
 
                 tabPanel.AddTab(name, new Boundary {
-                    Width = width,
+                    //Width = width,
                     MinHeight = heigth,
                     Content = new Background {
                         Color = backgroundColor,
@@ -138,7 +142,7 @@ namespace StatusConsole {
                 tabAvailable = true;
                 myInputController.AddCommandLine(textBox, uartService.ProcessCommand);
                 myFunctionController.AddUartScreen(name, uartScreen);
-                _Log.LogTrace($"Screen with {width}x{heigth} added -> {mainX}x{mainY}");
+                _Log.LogTrace($"Screen with widthx{heigth} added -> mainXx{mainY}");
             }
 
             if (tabAvailable) {
@@ -149,8 +153,8 @@ namespace StatusConsole {
             mainwin = new DockPanel {
                 Placement = DockPanel.DockedControlPlacement.Bottom,
                 DockedControl = new Boundary {
-                    MaxHeight = 10,
-                    MinHeight = 10,
+                    MaxHeight = 9,
+                    MinHeight = 9,
                     Content = myLogPanel
                 },
                 FillingControl = tabPanel
@@ -159,7 +163,7 @@ namespace StatusConsole {
 
         private void TabPanel_TabSwitched(object sender, TabSwitchedArgs e) {
             myInputController.SetActive(e.selectedIdx);
-            uartServices.SwitchCurrentService(e.selectedIdx);
+            serviceCollection.SwitchCurrentService(e.selectedIdx);
         }
 
      
@@ -169,7 +173,7 @@ namespace StatusConsole {
 
             ConsoleManager.Console = new SimplifiedConsole();
             ConsoleManager.Setup();
-            ConsoleManager.Resize(new Size(mainX, mainY+16));
+            //ConsoleManager.Resize(new Size(mainX, mainY+16));
             ConsoleManager.Content = mainwin;
 
          
@@ -183,19 +187,19 @@ namespace StatusConsole {
 
             // The single uartService Objects are POCOs (generated from Config and not DI!).
             // Here we add them manually to the 'StartAsync' cadence of the host.
-            foreach (var uartService in uartServices) {
+            foreach (var uartService in serviceCollection) {
                 await uartService.StartAsync(cancellationToken);
             }
         }
 
-        // When host wants to stop we do wait for all uartServices to stop here.
+        // When host wants to stop we do wait for all serviceCollection to stop here.
         public async Task StopAsync(CancellationToken cancellationToken) {
             _Log.LogDebug("Program StopAsync called");
             // Stop all UART Coms
-            await uartServices.ForEachAsync(uart => uart.StopAsync(cancellationToken));
+            await serviceCollection.ForEachAsync(uart => uart.StopAsync(cancellationToken));
             tuiThread?.Interrupt();
             while (tuiThread?.IsAlive??false) {
-                Thread.Sleep(20);
+                Thread.Sleep(50);
             }
             // Clear all content and switch color of Console for usage after this Program ....
             ConsoleManager.Content = new Style() { Background = Color.Black, Foreground = Color.White };
@@ -207,8 +211,9 @@ namespace StatusConsole {
             try {
                 _Log.LogDebug(new EventId(1, "TUI"), "TUI Thread started");
                 while (true) {
+                    ConsoleManager.AdjustBufferSize();  // Resize for Windows!
                     ConsoleManager.ReadInput(inputListeners);
-                    Thread.Sleep(20);
+                    Thread.Sleep(50);
                 }
             } catch (ThreadInterruptedException) {
                 _Log.LogDebug("TUI Thread canceled by InterruptException");

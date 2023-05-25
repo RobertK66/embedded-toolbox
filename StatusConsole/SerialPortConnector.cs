@@ -48,7 +48,7 @@ namespace StatusConsole {
         public void SendUart(byte[] bytes, int len) {
             try {
                 Port?.Write(bytes, 0, len);
-                Log?.LogDebug(new EventId(1, "Tx"), "{@line}", bytes);
+                Log?.LogDebug(new EventId(1, "Tx"),"{@line}", bytes);
             } catch (Exception ex) {
                 Log?.LogError(new EventId(1, "Tx"), "Send Error: " + ex.Message);
             }

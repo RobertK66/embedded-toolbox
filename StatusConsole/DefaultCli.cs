@@ -14,7 +14,7 @@ namespace StatusConsole {
 
     public class DefaultCli: ISerialProtocol {
         //private const int C_BYTESPERLINE = 255;
-        private IConfigurationSection? Config;
+        private readonly IConfigurationSection? Config;
         private IOutputWrapper? Screen;
         private ILogger? Log;
         private ITtyService? tty;

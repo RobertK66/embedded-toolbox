@@ -64,7 +64,7 @@ namespace StatusConsole {
             Screen = scr;
         }
 
-        Task IHostedService.StartAsync(CancellationToken cancellationToken) {
+        public Task StartAsync(CancellationToken cancellationToken) {
             try {
                 BeginnConnect(HostName, Port);
                 Nextion.L3PackageReceived += Nextion_L3PackageReceived;
@@ -180,7 +180,7 @@ namespace StatusConsole {
             }
         }
 
-        async Task IHostedService.StopAsync(CancellationToken cancellationToken) {
+        public async Task StopAsync(CancellationToken cancellationToken) {
             if (socket != null) {
                 if (socket.Connected) {
                     await socket.DisconnectAsync(false, cancellationToken);

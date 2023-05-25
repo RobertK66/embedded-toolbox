@@ -35,6 +35,6 @@ namespace StatusConsole.Logger {
         }
     }
 
-    internal class ConGuiLoggerExtensions {
-    }
+    //internal class ConGuiLoggerExtensions {
+    //}
 }
