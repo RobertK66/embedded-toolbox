@@ -211,7 +211,7 @@ namespace StatusConsole {
             try {
                 _Log.LogDebug(new EventId(1, "TUI"), "TUI Thread started");
                 while (true) {
-                    ConsoleManager.AdjustBufferSize();  // Resize for Windows!
+                        ConsoleManager.AdjustBufferSize();  // Resize for Windows!
                     ConsoleManager.ReadInput(inputListeners);
                     Thread.Sleep(50);
                 }

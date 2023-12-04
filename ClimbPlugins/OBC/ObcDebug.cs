@@ -46,7 +46,7 @@ namespace ClimbPlugins.OBC
                     }
                     break;
                 case L2Status.ESCAPE:
-                    rxData[rxIdx++] = (Byte)dataByte;
+                    rxData[rxIdx++] = (Byte)(dataByte ^ 0x00000020);
                     Log?.LogTrace("Rx(e): {@mycharHex}", "0x" + Convert.ToByte(dataByte).ToString("X2"));
                     Status = L2Status.DATA;
                     break;
