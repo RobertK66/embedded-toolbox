@@ -36,6 +36,7 @@ namespace StatusConsole {
             }
         }
 
+        //
         public void SetScreen(IOutputWrapper scr) {
             protocol.SetScreen(scr, Log, this, CmdTerminator);
         }
