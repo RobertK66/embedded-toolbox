@@ -82,11 +82,13 @@ namespace StatusConsole {
 
         byte[] Buffer = new Byte[1000];
         private async Task ReadLoop() {
-            int c = await Port.BaseStream.ReadAsync(Buffer);    
-            for(int i=0;i<c;i++) {
-                protocol.ProcessByte(Buffer[i]);
+            while (true) {
+                int c = await Port.BaseStream.ReadAsync(Buffer);
+                for (int i = 0; i < c; i++) {
+                    protocol.ProcessByte(Buffer[i]);
+                }
             }
-            _ = ReadLoop();     // ???? : is this a memory leak !!?? -> Call Stack ok!?
+            //_ = ReadLoop();     // ???? : is this a memory leak !!?? -> Call Stack ok!?
         }
 
         public Task StartAsync(CancellationToken cancellationToken) {
@@ -104,8 +106,6 @@ namespace StatusConsole {
                 Port.NewLine = Config?.GetValue<String>("NewLine") ?? "\r";
                 Log?.LogInformation(new EventId(0), "Uart Uart {@portname} connected. Using {@newline} as newline char.", Port.PortName, "0x" + Convert.ToByte(Port.NewLine[0]).ToString("X2"));
 
-                _ = ReadLoop(); // That's working for std COM USB driver also! (its not a loop but a self re-firing async call!)
-
 
                 //Port.DataReceived += Port_DataReceived;       // This does not work reliably with CDC-UARTS on Standard USB-COM drivers from Microsoft! 
                 //                                                 (see https://sparxeng.com/blog/software/must-use-net-system-io-ports-serialport for solution)
@@ -114,7 +114,8 @@ namespace StatusConsole {
                 Port.PinChanged += Port_PinChanged;
                 Port.Disposed += Port_Disposed;
 
-              
+                _ = ReadLoop(); // That's working for std COM USB driver also! (its not a loop but a self re-firing async call!)
+
                 //Log?.LogInformation(new EventId(0), "Sending OnConnect command {@cmd}", OnConnect);
                 SendUart(Encoding.ASCII.GetBytes((OnConnect ?? "") + Port.NewLine), Encoding.ASCII.GetBytes(OnConnect ?? "").Length + 1);
             } catch (Exception ex) {
