@@ -42,9 +42,13 @@ jobs:
           dotnet-version: 8.0.x
 
       
-      - name: create a custom version using run number offset by 1000 (run_number + 1000)
+      - name: create the release tag
         run: |
-            echo "mytag=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+            if [ "${{ matrix.target }}" == "win-x64" ]; then
+              echo "set mytag=$(git rev-parse --short HEAD)" >> $GITHUB_ENV  
+            else
+              echo "mytag=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+            fi
 
       - name: Build
         shell: bash
