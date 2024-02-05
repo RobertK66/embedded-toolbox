@@ -14,7 +14,7 @@ namespace StatusConsole {
         private ISerialProtocol protocol;
 
         private SerialPort Port;
-        private String OnConnect;
+        private String OnConnect; 
         private String CmdTerminator;
 
         public void Initialize(IConfigurationSection cs, IConfiguration rootConfig, ILogger logger) {
