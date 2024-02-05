@@ -18,7 +18,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClimbPlugins", "ClimbPlugin
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComCli", "ComCli\ComCli.csproj", "{A7069CBF-7F0B-4B78-BFC8-D43358E20AA0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DummyProject", "DummyProject\DummyProject.csproj", "{2903EA15-DFF8-4AD2-B0E2-CEA78CCE91CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DummyProject", "DummyProject\DummyProject.csproj", "{2903EA15-DFF8-4AD2-B0E2-CEA78CCE91CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
