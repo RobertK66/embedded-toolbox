@@ -57,11 +57,23 @@ jobs:
           fi
           # Delete output directory
           rm -r "$release_name"
-      - name: Publish
-        uses: softprops/action-gh-release@v1
-        with:
-          tag:   "Rel${{ env.tag }}"
-          files: "App*"
+      #- name: Publish
+      #  uses: softprops/action-gh-release@v1
+      #  with:
+      #    tag:   "Rel${{ env.tag }}"
+      #    files: "App*"
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create-Release
+        id: release
+        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            tag_name: "Rel_${{ env.tag }}"
+            release_name: "Rel_${{ env.tag }}"
+            files: "App*"
+            draft: false
+            prerelease: false
 
