@@ -6,7 +6,7 @@ namespace DummyProject {
             var builder = WebApplication.CreateBuilder(args);
             var app = builder.Build();
 
-            app.MapGet("/", () => "Hello World!");
+            app.MapGet("/", () => "Hello my dummy World!");
 
             app.Run();
         }
