@@ -41,14 +41,15 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: create the release bash
+      - name:  create the release bash
+        shell: bash
         run: |
             echo "mytag=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       
-      - name: create the release win-powershell
-        continue-on-error: true
-        run: |
-            Add-Content -Path $env:GITHUB_ENV -Value "mytag=$(git rev-parse --short HEAD)"
+#      - name: create the release win-powershell
+#        continue-on-error: true
+#        run: |
+#            Add-Content -Path $env:GITHUB_ENV -Value "mytag=$(git rev-parse --short HEAD)"
 
       - name: Build
         shell: bash
