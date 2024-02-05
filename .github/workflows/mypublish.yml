@@ -42,13 +42,15 @@ jobs:
           dotnet-version: 8.0.x
 
       
-      - name: create the release tag
+      - name: create the release win
+        if: ${{ matrix.target }}" == "win-x64" 
         run: |
-            if [ "${{ matrix.target }}" == "win-x64" ]; then
-              echo "set mytag=$(git rev-parse --short HEAD)" >> $GITHUB_ENV  
-            else
-              echo "mytag=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-            fi
+            echo "set mytag=$(git rev-parse --short HEAD)" >> $GITHUB_ENV  
+
+      - name: create the release tag
+        if: ${{ matrix.target }}" <> "win-x64" 
+        run: |
+            echo "mytag=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Build
         shell: bash
